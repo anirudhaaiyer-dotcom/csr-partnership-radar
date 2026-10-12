@@ -42,7 +42,7 @@ export default async function Priorities() {
         {ws.status === 'never' && <span><b>{ws.demo ? 'Seeded sample, not a live run.' : 'No run has completed yet.'}</b></span>}
         {ws.status === 'current' && <span>Last successful run: {formatDateTimeIST(ws.lastGoodRun?.finished_at)}</span>}
         <span>Sources responding: {sourcesOk}</span>
-        <span>Next digest: Monday 7:00 AM IST</span>
+        <span>Next digest: Monday morning, about 6 AM IST</span>
         <span>NGO readiness: {ws.readiness.state === 'passed' ? 'Passed' : ws.readiness.state === 'failed' ? 'Failed' : 'Not fully set'}</span>
         {!ws.demo && <RunButton disabled={!writable} title={writable ? '' : 'Changes are disabled until APP_PASSWORD is set'} />}
       </div>

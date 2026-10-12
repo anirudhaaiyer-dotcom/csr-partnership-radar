@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   call_min: 55,
   watch_min: 30,
   fit_floor: 6,
+  geo_points: { pune: 13, maharashtra: 10, pan_india: 8, base_maharashtra: 5 },
   late_min_fresh_score: 65,
   late_max: 3,
   main_window_days: 7,

@@ -1,7 +1,7 @@
 # CSR Partnership Radar
 
 A weekly CSR intelligence digest for the Head of Corporate Partnerships at a Pune education and skilling NGO.
-It finds corporate CSR signals, checks them against fixed gates, scores them against a 100-point rubric, and tells the reader one of three things per company: **Call this week**, **Watch**, or **Skip**. Policy updates are shown separately and are never scored. Every score shows the quote that supports it. The tool drafts outreach emails but **never sends one**. The only email it sends is the Monday 7:00 AM IST digest.
+It finds corporate CSR signals, checks them against fixed gates, scores them against a 100-point rubric, and tells the reader one of three things per company: **Call this week**, **Watch**, or **Skip**. Policy updates are shown separately and are never scored. Every score shows the quote that supports it. The tool drafts outreach emails but **never sends one**. The only email it sends is the Monday-morning digest (the job runs at 6:00 AM IST).
 
 ## What it does
 
@@ -32,7 +32,7 @@ These are easy to change in `src/lib/config.ts` and `/settings`.
 
 ```bash
 npm install
-npm test            # 74 tests
+npm test            # 89 tests
 npm run dev
 ```
 

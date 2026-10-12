@@ -82,6 +82,13 @@ describe('Scoring and verdicts', () => {
     expect(pts(strongEx({ geography: q('other') }))).toBe(0);
   });
 
+  it('S5b: footprint points are configurable, so a new region can be raised as the programme grows', () => {
+    const pts = (g: 'pune' | 'maharashtra', geoPoints?: Record<string, number>) => scoreItem({ ex: strongEx({ geography: q(g) }), age: 1, sourceClass: 'major_press', company: null, geoPoints }).factors[3].points;
+    expect(pts('maharashtra', { maharashtra: 13 })).toBe(13);
+    expect(pts('pune', { pune: 4 })).toBe(4);
+    expect(pts('pune')).toBe(13);
+  });
+
   it('S6: explicit partner search passing the checks is Call this week; failing Schedule VII it is Excluded', () => {
     const lowEx = strongEx({ beneficiary: ex().beneficiary, geography: ex().geography, scale_cr: ex().scale_cr });
     const items = build([art('a', lowEx)]);

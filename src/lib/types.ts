@@ -85,6 +85,8 @@ export interface Settings {
     record_years: number | null;
   };
   digest_to: string | null;
+  /** Points for each geography level (the NGO's footprint). Defaults match the rubric; editable in Settings. */
+  geo_points: Record<'pune' | 'maharashtra' | 'pan_india' | 'base_maharashtra', number>;
 }
 
 export type Verdict = 'call' | 'watch' | 'skip' | 'excluded' | 'policy';

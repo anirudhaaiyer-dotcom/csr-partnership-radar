@@ -1,4 +1,5 @@
 import { checkWrite } from '@/lib/auth';
+import { RUBRIC } from '@/lib/config';
 import { repo } from '@/lib/server';
 import { isIsoDate } from '@/lib/time';
 import type { Settings, Tri } from '@/lib/types';
@@ -19,6 +20,12 @@ export async function POST(req: Request) {
   if (callMin !== null) next.call_min = callMin;
   if (watchMin !== null) next.watch_min = watchMin;
   if (floor !== null) next.fit_floor = floor;
+  const gpIn = (b.geo_points ?? {}) as Record<string, unknown>;
+  next.geo_points = { ...cur.geo_points };
+  for (const k of ['pune', 'maharashtra', 'pan_india', 'base_maharashtra'] as const) {
+    const v = num(gpIn[k], 0, RUBRIC.max.geography);
+    if (v !== null) next.geo_points[k] = Math.round(v);
+  }
   if (next.watch_min >= next.call_min) return Response.json({ error: 'Watch must be lower than Call' }, { status: 400 });
   const ex = list(b.excluded_keywords); if (ex) next.excluded_keywords = ex;
   const sec = list(b.sectors); if (sec) next.sectors = sec;

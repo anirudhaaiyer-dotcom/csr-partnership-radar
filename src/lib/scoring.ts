@@ -8,6 +8,8 @@ export interface ScoreInput {
   company?: Company | null;
   /** number of distinct publishers that ran the story */
   publishers?: number;
+  /** footprint points per geography level; defaults to the rubric table */
+  geoPoints?: Partial<Record<GeographyLevel, number>>;
   /** score as if published today (used for late finds) */
   fresh?: boolean;
 }
@@ -67,6 +69,7 @@ export function scoreItem(inp: ScoreInput): ScoreResult {
   });
 
   // Geography fit: best of the quoted geography and the company list (HQ in Maharashtra)
+  const gp = { ...RUBRIC.geography, ...(inp.geoPoints ?? {}) };
   let geo: GeographyLevel = 'other';
   let geoPts = 0;
   let geoTag: Tag = 'not_stated';
@@ -74,14 +77,14 @@ export function scoreItem(inp: ScoreInput): ScoreResult {
   let geoNote: string | null = 'Geography not stated';
   if (quoted(ex.geography)) {
     geo = ex.geography.value!;
-    geoPts = RUBRIC.geography[geo];
+    geoPts = gp[geo] ?? 0;
     geoTag = 'quoted';
     geoQuote = ex.geography.quote;
     geoNote = null;
   }
-  if (company?.hq_maharashtra && RUBRIC.geography.base_maharashtra > geoPts) {
+  if (company?.hq_maharashtra && gp.base_maharashtra > geoPts) {
     geo = 'base_maharashtra';
-    geoPts = RUBRIC.geography.base_maharashtra;
+    geoPts = gp.base_maharashtra;
     geoTag = 'list';
     geoQuote = null;
     geoNote = 'Company base in Maharashtra, from your company list';
