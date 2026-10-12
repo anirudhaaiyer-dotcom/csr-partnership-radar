@@ -1,3 +1,4 @@
+import { EMERGING_MIN } from '@/lib/config';
 import { looksRelevant } from '@/lib/extract';
 import { repo } from '@/lib/server';
 import { formatDate } from '@/lib/time';
@@ -24,9 +25,9 @@ export default async function Research() {
       let detail = '';
       let rank = 5;
       if (o) {
-        status = VERDICT[o.verdict] ?? o.verdict;
+        status = o.verdict === 'skip' && (o.total ?? 0) >= EMERGING_MIN ? 'Emerging' : VERDICT[o.verdict] ?? o.verdict;
         detail = `${o.company}${o.total !== null ? `, ${o.total}/100` : ''}. ${o.verdict_reason}`;
-        rank = o.verdict === 'call' ? 0 : o.verdict === 'watch' ? 1 : o.verdict === 'policy' ? 2 : 3;
+        rank = o.verdict === 'call' ? 0 : o.verdict === 'watch' ? 1 : status === 'Emerging' ? 2 : o.verdict === 'policy' ? 2 : 3;
       } else if (a.extraction) {
         status = 'Analysed, no lead';
         detail = a.extraction.signal.value && a.extraction.signal.value !== 'none' ? `Signal: ${a.extraction.signal.value}` : 'No CSR funding or partner signal found in the text';
@@ -56,6 +57,7 @@ export default async function Research() {
         <tbody>
           <tr><td>Items reviewed (last {ws.settings.discovery_window_days} days)</td><td>{articles.length}</td></tr>
           <tr><td>Leads (Call this week or Watch)</td><td>{leads}</td></tr>
+          <tr><td>Emerging</td><td>{n('Emerging')}</td></tr>
           <tr><td>Policy updates</td><td>{n('Policy update')}</td></tr>
           <tr><td>Analysed, no lead</td><td>{n('Analysed, no lead') + n('Skipped') + n('Excluded')}</td></tr>
           <tr><td>Waiting for analysis</td><td>{n('Waiting for analysis')}</td></tr>

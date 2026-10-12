@@ -91,7 +91,7 @@ export type Verdict = 'call' | 'watch' | 'skip' | 'excluded' | 'policy';
 export type Confidence = 'high' | 'medium' | 'low';
 
 export interface FactorScore {
-  key: 'signal' | 'beneficiary' | 'sector' | 'geography' | 'scale' | 'recency' | 'source' | 'actionability';
+  key: 'signal' | 'beneficiary' | 'sector' | 'geography' | 'scale' | 'recency' | 'source' | 'actionability' | 'corroboration' | 'capacity';
   label: string;
   points: number;
   max: number;

@@ -9,7 +9,7 @@ It finds corporate CSR signals, checks them against fixed gates, scores them aga
 2. **Extracts** structured fields with Gemini Flash. Each field must carry a supporting quote that appears in the source text. If the quote is not found, the field is treated as "not stated" and scores zero.
 3. **Checks gates** before any scoring: NGO readiness, Schedule VII fit, company Section 135 applicability, exclusions. Each is Passed, Failed or Unknown.
 4. **Scores in plain code** (not by the model): signal 25, beneficiary 20, sector 10, geography 15, scale 10, recency 10, source credibility 5, actionability 5.
-   Call needs 70 or more, Watch 45 to 69, Skip below 45. A partner search that passes the gates is a Call.
+   Call needs 55 or more, Watch 30 to 54, Emerging 15 to 29 (shown, but not a reason to call), Skip below 15. A partner search that passes the gates is a Call.
 5. **Windows**: main digest shows items 0 to 7 days old. Late finds (8 to 21 days old, never shown before, fresh score of 80 or more, at most 3) are listed separately. Open calls stay eligible until their deadline.
 6. **Shows** one ranked list (Call, then Watch), policy updates separately, and "Closing before next Monday" at the top.
 7. **Drafts** an outreach email when the user taps Pursue. The user copies it or opens it in their own mail app.
@@ -52,6 +52,7 @@ With no environment variables set, the app starts in **demo mode**: no database,
 | `RESEND_API_KEY`, `DIGEST_FROM`, `DIGEST_TO` | The Monday digest. `DIGEST_FROM` must be a sender verified in Resend. |
 | `APP_URL` | Public URL, used for links in the email. |
 | `CRON_SECRET` | Vercel sends it as `Authorization: Bearer` to the cron route. |
+| `ALLOW_OPEN_WRITES` | Set to `true` to allow Run now, Pursue, Companies and Settings without a password (demo mode on a public URL). Anyone with the link can then trigger a run and use Gemini quota. Prefer `APP_PASSWORD` for real use. |
 | `APP_PASSWORD` | Protects the whole app with a password (Basic auth). If it is unset in production, every write returns 403 and the site is read-only. |
 
 5. Open **System health** and press **Run now** once. Confirm each source shows a count or a plain error message.

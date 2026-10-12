@@ -6,6 +6,8 @@ export interface ScoreInput {
   age: number | null;
   sourceClass: SourceClass;
   company?: Company | null;
+  /** number of distinct publishers that ran the story */
+  publishers?: number;
   /** score as if published today (used for late finds) */
   fresh?: boolean;
 }
@@ -126,6 +128,22 @@ export function scoreItem(inp: ScoreInput): ScoreResult {
     actPts = RUBRIC.actionability.foundation; actTag = 'quoted'; actQuote = ex.foundation.quote; actNote = 'Named foundation';
   }
   f.push({ key: 'actionability', label: 'Actionability', max: RUBRIC.max.actionability, points: actPts, tag: actTag, quote: actQuote, note: actNote });
+
+  // Corroboration (metadata)
+  const pubs = inp.publishers ?? 1;
+  f.push({
+    key: 'corroboration', label: 'Corroboration', max: RUBRIC.max.corroboration,
+    points: pubs >= 3 ? RUBRIC.corroboration.three_plus : pubs === 2 ? RUBRIC.corroboration.two : RUBRIC.corroboration.one,
+    tag: 'metadata', quote: null, note: `${pubs} publisher${pubs === 1 ? '' : 's'} covered it`,
+  });
+
+  // Funding capacity (from the Companies list)
+  const s135 = company?.section135 ?? 'unknown';
+  f.push({
+    key: 'capacity', label: 'Funding capacity', max: RUBRIC.max.capacity, points: RUBRIC.capacity[s135],
+    tag: s135 === 'unknown' ? 'not_stated' : 'list', quote: null,
+    note: s135 === 'passed' ? 'Section 135 applies, from your company list' : s135 === 'failed' ? 'Section 135 does not apply' : 'Section 135 status not on your list: small neutral amount',
+  });
 
   const total = f.reduce((s, x) => s + x.points, 0);
   return { factors: f, total, geography: geo, geographyTag: geoTag };

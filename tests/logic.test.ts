@@ -44,14 +44,14 @@ describe('Scoring and verdicts', () => {
   const base = {
     signal: 'initiative_budget' as const, explicitPartnerSearch: false, beneficiaryPoints: 12, readiness: { state: 'passed' as const, reason: '' },
     checks: { schedule_vii: { state: 'passed' as const, reason: '' }, section135: { state: 'passed' as const, reason: '' }, exclusions: { state: 'passed' as const, reason: '' } },
-    settings: { call_min: 70, watch_min: 45, fit_floor: 6 },
+    settings: { call_min: 55, watch_min: 30, fit_floor: 6 },
   };
 
-  it('S2: band boundaries 70 / 69 / 45 / 44', () => {
-    expect(decide({ ...base, total: 70 }).verdict).toBe('call');
-    expect(decide({ ...base, total: 69 }).verdict).toBe('watch');
-    expect(decide({ ...base, total: 45 }).verdict).toBe('watch');
-    expect(decide({ ...base, total: 44 }).verdict).toBe('skip');
+  it('S2: band boundaries 55 / 54 / 30 / 29', () => {
+    expect(decide({ ...base, total: 55 }).verdict).toBe('call');
+    expect(decide({ ...base, total: 54 }).verdict).toBe('watch');
+    expect(decide({ ...base, total: 30 }).verdict).toBe('watch');
+    expect(decide({ ...base, total: 29 }).verdict).toBe('skip');
   });
 
   it('S3: a failed check excludes the item whatever the score', () => {
@@ -72,12 +72,12 @@ describe('Scoring and verdicts', () => {
     expect(decide({ ...base, total: 75, beneficiaryPoints: 6 }).verdict).toBe('call');
   });
 
-  it('S5: geography points 15 / 12 / 9 / 6 / 0, and unquoted geography scores 0', () => {
+  it('S5: geography points 13 / 10 / 8 / 5 / 0, and unquoted geography scores 0', () => {
     const pts = (e: Extraction, c = null as ReturnType<typeof company> | null) => scoreItem({ ex: e, age: 1, sourceClass: 'major_press', company: c }).factors[3].points;
-    expect(pts(strongEx({ geography: q('pune') }))).toBe(15);
-    expect(pts(strongEx({ geography: q('maharashtra') }))).toBe(12);
-    expect(pts(strongEx({ geography: q('pan_india') }))).toBe(9);
-    expect(pts(strongEx({ geography: ex().geography }), company('Acme', { hq_maharashtra: true }))).toBe(6);
+    expect(pts(strongEx({ geography: q('pune') }))).toBe(13);
+    expect(pts(strongEx({ geography: q('maharashtra') }))).toBe(10);
+    expect(pts(strongEx({ geography: q('pan_india') }))).toBe(8);
+    expect(pts(strongEx({ geography: ex().geography }), company('Acme', { hq_maharashtra: true }))).toBe(5);
     expect(pts(strongEx({ geography: ex().geography }))).toBe(0);
     expect(pts(strongEx({ geography: q('other') }))).toBe(0);
   });
@@ -268,7 +268,8 @@ describe('Relationship factor and ordering (C3)', () => {
     const beta = items.find((o) => o.company === 'Beta Co')!;
     const alpha = items.find((o) => o.company === 'Alpha Co')!;
     expect(beta.factors[7].points).toBe(5);
-    expect(beta.total! - alpha.total!).toBeLessThanOrEqual(5);
+    // relationship earns 5 actionability points; the company-list Section 135 status adds up to 3 more capacity points
+    expect(beta.total! - alpha.total!).toBeLessThanOrEqual(8);
     expect(selectLists(items, settings()).call[0].company).toBe('Beta Co');
   });
   it('a flagged company that fails a check is still excluded', () => {
@@ -283,11 +284,34 @@ describe('Relationship factor and ordering (C3)', () => {
   });
 });
 
-describe('Worked examples from the design (A=98, B=59, C=77/87)', () => {
-  it('A: all strong factors is 98', () => {
-    // 25 + 20 + 10 + 15 + 10 + 10(recency day 0-2) + 4 (major press) + 5 = 99; official source gives 100 so use regional for 98
+describe('Worked examples from the design (rubric v3)', () => {
+  it('A: all strong factors is 91', () => {
+    // 25 + 18 + 10 + 13 + 8 + 8 (recency day 0-2) + 3 (regional) + 5 + 0 (one publisher) + 1 (Section 135 not on list) = 91
     const e = strongEx({ contact: q('A Named Person'), deadline: q('2026-11-30') });
     const r = scoreItem({ ex: e, age: 1, sourceClass: 'regional_trade' });
-    expect(r.total).toBe(98);
+    expect(r.total).toBe(91);
+  });
+  it('corroboration and capacity: more publishers and a confirmed Section 135 company score higher, within their caps', () => {
+    const e = strongEx({ contact: q('A Named Person') });
+    const pts = (publishers: number, c = null as ReturnType<typeof company> | null) => {
+      const r = scoreItem({ ex: e, age: 1, sourceClass: 'regional_trade', publishers, company: c });
+      return [r.factors[8].points, r.factors[9].points, r.total] as const;
+    };
+    expect(pts(1)[0]).toBe(0);
+    expect(pts(2)[0]).toBe(2);
+    expect(pts(5)[0]).toBe(4);
+    expect(pts(1)[1]).toBe(1);
+    expect(pts(1, company('Acme', { section135: 'passed' }))[1]).toBe(4);
+    expect(pts(3, company('Acme', { section135: 'passed' }))[2]).toBeLessThanOrEqual(100);
+  });
+  it('a Maharashtra skilling announcement without a partner search reaches Call under the recalibrated bars', () => {
+    const e = strongEx({ signal: q('allocation'), explicit_partner_search: ex().explicit_partner_search, scale_cr: ex().scale_cr, beneficiary: q('low_income_youth') });
+    const r = scoreItem({ ex: e, age: 1, sourceClass: 'regional_trade' });
+    expect(r.total).toBeGreaterThanOrEqual(55);
+  });
+  it('an other-state digital skills story lands in Watch or Emerging, not Call', () => {
+    const e = strongEx({ signal: q('allocation'), explicit_partner_search: ex().explicit_partner_search, scale_cr: ex().scale_cr, beneficiary: q('youth_general'), geography: q('other'), sector: q('digital_youth_employment') });
+    const r = scoreItem({ ex: e, age: 2, sourceClass: 'regional_trade' });
+    expect(r.total).toBeLessThan(55);
   });
 });

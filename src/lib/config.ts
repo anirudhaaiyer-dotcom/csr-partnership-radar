@@ -1,33 +1,37 @@
 import type { Settings } from './types';
 
-/** Every number below is a rule from the brief, except FIT_FLOOR (proposed, default accepted 12 Oct). */
+/** Rubric v3 (12 Oct 2026, 100 points, 10 factors). v3 recalibrated the bars to Call 55 / Watch 30 and added corroboration and capacity by trimming beneficiary, geography, scale and recency. */
 export const RUBRIC = {
   signal: { partner_search: 25, initiative_budget: 18, allocation: 12, policy: 0, none: 0 },
-  beneficiary: { dropouts_first_gen: 20, low_income_youth: 12, youth_general: 6, none: 0 },
+  beneficiary: { dropouts_first_gen: 18, low_income_youth: 11, youth_general: 5, none: 0 },
   sector: { skilling_placement: 10, digital_youth_employment: 8, other_education: 4, none: 0 },
-  geography: { pune: 15, maharashtra: 12, pan_india: 9, base_maharashtra: 6, other: 0 },
+  geography: { pune: 13, maharashtra: 10, pan_india: 8, base_maharashtra: 5, other: 0 },
   scaleBands: [
-    { minCr: 10, points: 10 },
-    { minCr: 5, points: 8 },
-    { minCr: 1, points: 5 },
+    { minCr: 10, points: 8 },
+    { minCr: 5, points: 6 },
+    { minCr: 1, points: 4 },
   ],
   scaleUnder1: 2,
   scaleUnstated: 3,
   recency: [
-    { maxAge: 2, points: 10 },
-    { maxAge: 4, points: 7 },
-    { maxAge: 7, points: 4 },
+    { maxAge: 2, points: 8 },
+    { maxAge: 4, points: 6 },
+    { maxAge: 7, points: 3 },
   ],
   source: { official: 5, major_press: 4, regional_trade: 3, blog: 1 },
   actionability: { named: 5, foundation: 3, none: 0 },
-  max: { signal: 25, beneficiary: 20, sector: 10, geography: 15, scale: 10, recency: 10, source: 5, actionability: 5 },
+  /** v3: how many separate publishers covered the same story (a lone headline is weaker than a story several outlets ran). */
+  corroboration: { three_plus: 4, two: 2, one: 0 },
+  /** v3: the company's ability to fund. Section 135 status comes from the Companies list; unlisted counts as a small neutral amount. */
+  capacity: { passed: 4, unknown: 1, failed: 0 },
+  max: { signal: 25, beneficiary: 18, sector: 10, geography: 13, scale: 8, recency: 8, source: 5, actionability: 5, corroboration: 4, capacity: 4 },
 } as const;
 
 export const DEFAULT_SETTINGS: Settings = {
-  call_min: 70,
-  watch_min: 45,
+  call_min: 55,
+  watch_min: 30,
   fit_floor: 6,
-  late_min_fresh_score: 80,
+  late_min_fresh_score: 65,
   late_max: 3,
   main_window_days: 7,
   discovery_window_days: 21,

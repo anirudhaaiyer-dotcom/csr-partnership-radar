@@ -117,8 +117,9 @@ export function buildOpportunities(ctx: BuildContext): Opportunity[] {
     const bestClass = (['official', 'major_press', 'regional_trade', 'blog'] as const).find((c) => sources.some((s) => s.source_class === c))!;
 
     const exUsed: Extraction = { ...ex, deadline: deadline ? { value: deadline, quote: ex.deadline.quote ?? members.map((m) => m.extraction!.deadline.quote).find(Boolean) ?? null, tag: 'quoted' } : ex.deadline };
-    const sc = scoreItem({ ex: exUsed, age, sourceClass: bestClass, company });
-    const fresh = scoreItem({ ex: exUsed, age, sourceClass: bestClass, company, fresh: true });
+    const publishers = new Set(members.map((m) => (m.publisher_domain ?? m.publisher ?? domainOf(m.url) ?? m.url).toLowerCase())).size;
+    const sc = scoreItem({ ex: exUsed, age, sourceClass: bestClass, company, publishers });
+    const fresh = scoreItem({ ex: exUsed, age, sourceClass: bestClass, company, fresh: true, publishers });
 
     const text = members.map((m) => m.title + ' ' + m.text).join(' ');
     const checks: Opportunity['checks'] = {

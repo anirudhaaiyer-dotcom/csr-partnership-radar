@@ -1,4 +1,6 @@
+import { Glance, ScoreBar } from '@/components/Glance';
 import { OpportunityCard } from '@/components/OpportunityCard';
+import { EMERGING_MIN } from '@/lib/config';
 import { RunButton } from '@/components/RunButton';
 import { writesEnabled } from '@/lib/auth';
 import { repo } from '@/lib/server';
@@ -23,6 +25,9 @@ export default async function Priorities() {
   const stripClass = ws.status === 'failed' ? 'strip bad' : ws.status === 'stale' || ws.status === 'partial' ? 'strip warn' : 'strip';
   const sourcesOk = latest ? `${latest.sources.filter((s) => s.ok).length} of ${latest.sources.length}` : '—';
 
+  const scored = [...lists.call, ...lists.watch, ...lists.emerging];
+  const best = [...scored].sort((a, b) => (b.total ?? 0) - (a.total ?? 0))[0];
+  const thresholds = { emerging: EMERGING_MIN, watch: ws.settings.watch_min, call: ws.settings.call_min };
   const nothing = lists.call.length + lists.watch.length + lists.policy.length + lists.closing.length + lists.late.length + lists.emerging.length === 0;
 
   return (
@@ -42,6 +47,14 @@ export default async function Priorities() {
         {!ws.demo && <RunButton disabled={!writable} title={writable ? '' : 'Changes are disabled until APP_PASSWORD is set'} />}
       </div>
 
+      <div className="hero">
+        <div>
+          <b>{lists.call.length + lists.watch.length + lists.emerging.length > 0 ? `${lists.call.length} to call, ${lists.watch.length} to watch, ${lists.emerging.length} emerging` : 'No leads yet this week'}</b>
+          <p>{best ? `Strongest lead: ${best.company} (${best.total}/100).` : 'Run the search to fetch this week’s CSR activity.'} Draft an email to any company on the Outreach tab.</p>
+        </div>
+        <div className="pills"><span className="pill">{latest?.reviewed ?? 0} items reviewed</span><span className="pill">{lists.policy.length} policy update{lists.policy.length === 1 ? '' : 's'}</span></div>
+      </div>
+
       <div className="nums" aria-label="Key numbers">
         <div className="num"><b>{lists.call.length}</b><span>Call this week</span></div>
         <div className="num"><b>{lists.watch.length}</b><span>Watch</span></div>
@@ -49,6 +62,13 @@ export default async function Priorities() {
         <div className="num"><b>{lists.closing.length}</b><span>Closing before next Monday</span></div>
         <div className="num"><b>{dataLabel}</b><span>Data status</span></div>
       </div>
+
+      <div className="guide" aria-label="How to read the tiers">
+        <span><b>Call this week:</b> score {ws.settings.call_min}+ or an open partner search. Reach out now.</span>
+        <span><b>Watch:</b> {ws.settings.watch_min}–{ws.settings.call_min - 1}. Relevant, not yet a reason to call.</span>
+        <span><b>Emerging:</b> {EMERGING_MIN}–{ws.settings.watch_min - 1}. Active in your space, keep an eye.</span>
+      </div>
+      {scored.length + lists.policy.length > 0 && <Glance leads={{ call: lists.call, watch: lists.watch, emerging: lists.emerging, policy: lists.policy }} reviewed={latest?.reviewed ?? 0} extracted={latest?.extracted ?? 0} thresholds={thresholds} runLabel={latest ? `Latest run, ${formatDateTimeIST(latest.finished_at)}` : ''} />}
 
       {ws.readiness.state === 'failed' && <div className="strip bad" role="alert">NGO readiness check failed, so every item is excluded. {ws.readiness.reason} Fix it in Settings.</div>}
 
@@ -76,11 +96,16 @@ export default async function Priorities() {
       {lists.emerging.length > 0 && (
         <>
           <h2>Emerging</h2>
-          <p className="sub">Real education or skilling CSR activity that scored below the Watch bar of {ws.settings.watch_min}. None is a partner search yet, so none is a reason to call, but these companies are active in your space. Evidence for every item is on the Research tab.</p>
+          <p className="sub">Real education or skilling CSR activity that scored {EMERGING_MIN} to {ws.settings.watch_min - 1}, below the Watch bar of {ws.settings.watch_min}. None is a partner search yet, but these companies are active in your space. Evidence for every item is on the Research tab.</p>
           {lists.emerging.map((o) => (
-            <div className="close" key={'em' + o.id}>
-              <b>{o.company}</b><span>{o.total}/100</span><span>{o.why_now}</span>
-              <a href={o.sources[0]?.url} target="_blank" rel="noreferrer">{o.sources[0]?.publisher ?? 'Source'}: {o.sources[0]?.title}</a>
+            <div className="lead" key={'em' + o.id}>
+              <h3>{o.company}</h3>
+              <div className="score-col"><ScoreBar score={o.total ?? 0} {...thresholds} /><b>{o.total}</b></div>
+              <p className="why" style={{ margin: 0 }}>{o.why_now}. <a href={o.sources[0]?.url} target="_blank" rel="noreferrer">{o.sources[0]?.publisher ?? 'Source'}: {o.sources[0]?.title}</a></p>
+              <div className="acts">
+                <a className="btn" href={`/outreach?${new URLSearchParams({ company: o.company, noticed: o.sources[0]?.title ?? '' }).toString()}`}>Draft outreach</a>
+                <span className="meta">{o.factors.filter((f) => f.points > 0).length} of {o.factors.length} factors scored</span>
+              </div>
             </div>
           ))}
         </>

@@ -59,7 +59,7 @@ export function OpportunityCard({ o, initialDraft, writable }: { o: Opportunity;
         {o.relationship && <span className="chip warm">Existing relationship</span>}
         {o.checks.section135.state === 'unknown' && scored && <span className="chip unk">Section 135: Unknown</span>}
         {scored && total !== null && (
-          <span className="score"><b>{total}</b> / 100<br />Evidence: {o.confidence} · {o.supported_fields} of 8 supported</span>
+          <span className="score"><b>{total}</b> / 100<br />Evidence: {o.confidence} · {o.supported_fields} of {o.factors.length} supported</span>
         )}
       </div>
       <h3 id={`t-${o.id}`}>{o.company}</h3>
