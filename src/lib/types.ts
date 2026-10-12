@@ -42,7 +42,7 @@ export interface Article {
   publisher_domain: string | null;
   published_at: string | null; // ISO
   first_seen_at: string; // ISO
-  source: 'google_news' | 'gdelt' | 'seed';
+  source: 'google_news' | 'bing_news' | 'gdelt' | 'seed';
   text: string; // title + snippet or fetched body text
   text_kind: 'snippet_only' | 'body';
   extraction: Extraction | null;

@@ -4,7 +4,7 @@ import type { JsonModel } from './gemini';
 import type { FetchLike } from './http';
 import { loadSeedArticles } from './seed';
 import { ageDays } from './time';
-import { buildQueries, fetchGdelt, fetchGoogleNews, gdeltQueries, type RawItem } from './sources/feeds';
+import { buildQueries, fetchBingNews, fetchGdelt, fetchGoogleNews, gdeltQueries, type RawItem } from './sources/feeds';
 import { fetchArticleText } from './sources/articleText';
 import { domainOf, normalizeUrl, sha1 } from './util';
 import type { Article, RunRow, SourceStat } from './types';
@@ -48,14 +48,17 @@ export async function runPipeline(deps: PipelineDeps, trigger: RunRow['trigger']
     // 1. sources: Google News first, GDELT when Google fails or returns nothing (or when probing)
     const google = await fetchGoogleNews(buildQueries(settings, companies), deps.fetchImpl, deps.pauseMs ?? 400);
     sources.push(google.stat);
-    let items = [...google.items];
-    if (!google.stat.ok || google.items.length === 0 || deps.probe) {
+    // Bing News runs alongside Google: its links go straight to the publisher, so full article text can be fetched
+    const bing = await fetchBingNews(buildQueries(settings, companies), deps.fetchImpl, deps.pauseMs ?? 400);
+    sources.push(bing.stat);
+    let items = [...google.items, ...bing.items];
+    if ((!google.stat.ok && !bing.stat.ok) || items.length === 0 || deps.probe) {
       const g = await fetchGdelt(gdeltQueries(settings), deps.fetchImpl, deps.gdeltPauseMs ?? 5200);
       sources.push(g.stat);
       items = items.concat(g.items);
     }
     const anySourceOk = sources.some((s) => s.ok && s.items > 0);
-    if (sources.some((s) => !s.ok || s.error_class)) status = 'partial';
+    if (sources.some((s) => !s.ok)) status = 'partial';
 
     // 2. normalise, drop outside the discovery window, store only new articles
     const seen = new Set<string>();

@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 
 const ITEMS = [
   ['/', 'Priorities'],
+  ['/research', 'Research'],
   ['/companies', 'Companies'],
   ['/settings', 'Settings'],
   ['/health', 'System health'],

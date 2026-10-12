@@ -1,4 +1,4 @@
-import { buildDigest, sendDigest, type SendResult } from './digest';
+import { buildActivity, buildDigest, sendDigest, type SendResult } from './digest';
 import type { JsonModel } from './gemini';
 import type { FetchLike } from './http';
 import { runPipeline } from './pipeline';
@@ -47,7 +47,7 @@ export async function runWeekly(d: WeeklyDeps): Promise<WeeklyResult> {
   const ws = await loadWorkspace(d.repo, d.now);
   const content = buildDigest({
     lists: ws.lists, now: d.now, appUrl: d.env.APP_URL || '', latestRun: run, lastGoodRunDate: ws.lastGoodRun?.finished_at ?? null,
-    delayed, reviewed: run.reviewed,
+    delayed, reviewed: run.reviewed, activity: buildActivity(ws.all, await d.repo.listEvents(), d.now),
   });
   const send = await sendDigest({ repo: d.repo, resendKey: d.env.RESEND_API_KEY, from: d.env.DIGEST_FROM, to, now: d.now, fetchImpl: d.fetchImpl }, content);
   return { action: 'ran', runStatus: run.status, send, variant: content.variant };

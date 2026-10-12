@@ -1,5 +1,5 @@
 import { checkWrite } from '@/lib/auth';
-import { buildDigest, sendTestDigest } from '@/lib/digest';
+import { buildActivity, buildDigest, sendTestDigest } from '@/lib/digest';
 import { appEnv, repo } from '@/lib/server';
 import { loadWorkspace } from '@/lib/workspace';
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const now = new Date();
   const ws = await loadWorkspace(r, now);
   const latest = (await r.listRuns(1))[0] ?? null;
-  const content = buildDigest({ lists: ws.lists, now, appUrl: env.APP_URL || '', latestRun: latest, lastGoodRunDate: ws.lastGoodRun?.finished_at ?? null, delayed: false, reviewed: latest?.reviewed ?? 0 });
+  const content = buildDigest({ lists: ws.lists, now, appUrl: env.APP_URL || '', latestRun: latest, lastGoodRunDate: ws.lastGoodRun?.finished_at ?? null, delayed: false, reviewed: latest?.reviewed ?? 0, activity: buildActivity(ws.all, await r.listEvents(), now) });
   const sent = await sendTestDigest({ resendKey: env.RESEND_API_KEY, from: env.DIGEST_FROM, to, now }, content);
   if (!sent.ok) return Response.json({ ok: false, error: sent.error }, { status: sent.status });
   return Response.json({ ok: true, id: sent.id, to, variant: content.variant, subject: content.subject });

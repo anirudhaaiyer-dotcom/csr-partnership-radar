@@ -10,7 +10,7 @@ export interface RawItem {
   publisher_domain: string | null;
   published_at: string | null;
   snippet: string;
-  source: 'google_news' | 'gdelt';
+  source: 'google_news' | 'bing_news' | 'gdelt';
 }
 
 const UA = 'CSRPartnershipRadar/0.1 (weekly CSR digest for an Indian education NGO)';
@@ -44,6 +44,42 @@ export function parseGoogleRss(xml: string): RawItem[] {
       return {
         url: link, title: title.trim(), publisher, publisher_domain: pubUrl ? domainOf(pubUrl) : null,
         published_at: d && !Number.isNaN(d.getTime()) ? d.toISOString() : null, snippet, source: 'google_news',
+      };
+    })
+    .filter((x: RawItem | null): x is RawItem => x !== null);
+}
+
+export const bingFeedUrl = (q: string) => `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&setmkt=en-IN`;
+
+/** Bing wraps the publisher link in a tracking URL; the real address is in its `url` parameter. */
+export function unwrapBingLink(link: string): string | null {
+  try {
+    const u = new URL(link);
+    const inner = u.searchParams.get('url');
+    if (inner) return new URL(inner).toString();
+    return u.hostname.endsWith('bing.com') ? null : u.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function parseBingRss(xml: string): RawItem[] {
+  const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_', textNodeName: '#text' });
+  const raw = parser.parse(xml)?.rss?.channel?.item;
+  const items = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  return items
+    .map((it: Record<string, unknown>): RawItem | null => {
+      const url = typeof it.link === 'string' ? unwrapBingLink(it.link) : null;
+      const title = typeof it.title === 'string' ? it.title.trim() : '';
+      if (!url || !title) return null;
+      const src = it['News:Source'];
+      const publisher = typeof src === 'string' ? src : null;
+      const d = typeof it.pubDate === 'string' ? new Date(it.pubDate) : null;
+      const desc = stripTags(typeof it.description === 'string' ? it.description : '');
+      return {
+        url, title, publisher, publisher_domain: domainOf(url),
+        published_at: d && !Number.isNaN(d.getTime()) ? d.toISOString() : null,
+        snippet: desc && desc !== title && !desc.startsWith(title) ? desc : '', source: 'bing_news',
       };
     })
     .filter((x: RawItem | null): x is RawItem => x !== null);
@@ -102,6 +138,33 @@ export async function fetchGoogleNews(queries: string[], f: FetchLike = fetch, p
       source: 'Google News RSS', ok, items: items.length,
       error_class: failures ? lastClass : null,
       detail: failures ? `${failures} of ${queries.length} queries failed. Last: ${lastDetail}` : `${queries.length} queries`,
+    },
+  };
+}
+
+export async function fetchBingNews(queries: string[], f: FetchLike = fetch, pauseMs = 400): Promise<FeedResult> {
+  const items: RawItem[] = [];
+  let failures = 0;
+  let lastClass: string | null = null;
+  let lastDetail = '';
+  for (const q of queries) {
+    try {
+      const res = await fetchRetry(bingFeedUrl(q), { headers: { 'user-agent': UA }, timeoutMs: 10000, retries: 1 }, f);
+      if (!res.ok) throw new SourceError(`http_${res.status}`, `HTTP ${res.status}`);
+      items.push(...parseBingRss(await res.text()));
+    } catch (e) {
+      failures++;
+      lastClass = e instanceof SourceError ? e.errorClass : 'unknown';
+      lastDetail = (e as Error).message;
+    }
+    if (pauseMs) await new Promise((r) => setTimeout(r, pauseMs));
+  }
+  return {
+    items,
+    stat: {
+      source: 'Bing News RSS', ok: failures < queries.length, items: items.length,
+      error_class: failures ? lastClass : null,
+      detail: failures ? `${failures} of ${queries.length} queries failed. Last: ${lastDetail}` : `${queries.length} queries, publisher links and snippets included`,
     },
   };
 }

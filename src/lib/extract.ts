@@ -105,9 +105,9 @@ export function verifyExtraction(raw: Record<string, RawField>, text: string, mo
 /** Cheap pre-filter so model requests go to articles that could plausibly matter. */
 export function looksRelevant(a: Pick<Article, 'title' | 'text'>): boolean {
   const t = `${a.title} ${a.text}`.toLowerCase();
-  const csr = /\b(csr|corporate social responsibility|foundation|philanthropy|social impact)\b/.test(t);
-  const topic = /(educat|skill|school|student|youth|digital literacy|livelihood|employab|vocational|dropout|scholarship|training|placement|job)/.test(t);
-  return csr && topic;
+  // The feed queries are already CSR-scoped, and many headlines say "launches skilling programme" without the word CSR,
+  // so a topic match alone is enough to be worth a model look. The model decides whether it is a real signal.
+  return /(educat|skill|school|student|youth|digital literacy|livelihood|employab|vocational|dropout|scholarship|training|placement|upskill|apprentice)/.test(t);
 }
 
 export interface ExtractResult {
