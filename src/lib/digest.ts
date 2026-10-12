@@ -1,7 +1,7 @@
 import { fetchRetry, type FetchLike } from './http';
 import { digestCalls, geoLabel, type Lists } from './opportunities';
 import { formatDate, weekStartIST } from './time';
-import type { DigestRow, Opportunity, RunRow } from './types';
+import type { DigestRow, EventRow, Opportunity, RunRow } from './types';
 import type { Repo } from './repo/types';
 
 export type DigestVariant = DigestRow['variant'];
@@ -15,6 +15,37 @@ export interface DigestContent {
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+export const FOLLOW_UP_DAYS = 5;
+
+export interface Activity {
+  /** Pursued or drafted at least FOLLOW_UP_DAYS ago, with no status logged since. */
+  followUps: { o: Opportunity; days: number }[];
+  /** Outreach drafts copied in the last 7 days. */
+  outreach: { o: Opportunity; at: string }[];
+}
+
+/** Pure: turns the event log into the follow-up reminders and the week's outreach list for the digest. */
+export function buildActivity(all: Opportunity[], events: EventRow[], now: Date): Activity {
+  const DAY = 86400000;
+  const followUps: Activity['followUps'] = [];
+  const outreach: Activity['outreach'] = [];
+  for (const o of all) {
+    if (o.dismissed) continue;
+    const ev = events.filter((e) => e.cluster_id === o.id);
+    const last = (kind: EventRow['kind']) => ev.filter((e) => e.kind === kind).map((e) => e.at).sort().pop();
+    const pursue = last('pursue');
+    const copied = last('draft_copied');
+    if (copied && now.getTime() - new Date(copied).getTime() <= 7 * DAY) outreach.push({ o, at: copied });
+    const touch = [pursue, copied].filter((x): x is string => !!x).sort().pop();
+    if (!touch) continue;
+    const answered = ev.some((e) => e.kind === 'status' && e.at > touch);
+    const days = Math.floor((now.getTime() - new Date(touch).getTime()) / DAY);
+    if (!answered && days >= FOLLOW_UP_DAYS) followUps.push({ o, days });
+  }
+  followUps.sort((a, b) => b.days - a.days);
+  return { followUps, outreach };
+}
+
 export interface DigestInput {
   lists: Lists;
   now: Date;
@@ -23,6 +54,7 @@ export interface DigestInput {
   lastGoodRunDate: string | null;
   delayed: boolean;
   reviewed: number;
+  activity?: Activity;
 }
 
 export function buildDigest(i: DigestInput): DigestContent {
@@ -37,6 +69,8 @@ export function buildDigest(i: DigestInput): DigestContent {
   if (failed) status = `This week's run did not finish. Last successful run: ${i.lastGoodRunDate ? formatDate(i.lastGoodRunDate) : 'none yet'}. Nothing below is from this week.`;
   else if (calls.length === 0 && closing.length === 0) status = `Run completed. ${i.reviewed} items reviewed, none reached Call this week.`;
   else status = `${calls.length} to call this week${closing.length ? `, ${closing.length} closing before next Monday` : ''}.`;
+  const fu = i.activity?.followUps ?? [];
+  if (!failed && fu.length) status += ` ${fu.length} follow-up${fu.length === 1 ? '' : 's'} due.`;
   if (i.delayed) status = `Delayed digest: the Monday send did not go out. ${status}`;
 
   const ids = new Set<string>();
@@ -46,6 +80,9 @@ export function buildDigest(i: DigestInput): DigestContent {
   };
   const closingRows = failed ? [] : closing.map((o) => line(o, false));
   const callRows = failed ? [] : calls.map((o) => line(o));
+  const fuDays = new Map(fu.map((f) => [f.o.id, f.days]));
+  const fuRows = failed ? [] : fu.map((f) => ({ o: f.o }));
+  const outreach = failed ? [] : i.activity?.outreach ?? [];
   const lateRows = failed ? [] : i.lists.late.map((o) => line(o));
 
   const card = (o: Opportunity, tag: string) => {
@@ -67,18 +104,22 @@ export function buildDigest(i: DigestInput): DigestContent {
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fffdf8;border:1px solid #e5e2da;padding:20px;max-width:600px">
 <tr><td style="font-size:13px;color:#5d6675">CSR Partnership Radar · Week of ${esc(week)}</td></tr>
 <tr><td style="font-size:18px;font-weight:650;color:#1b2333;padding-top:6px">${esc(status)}</td></tr>
+${section('Follow-ups due', fuRows, (o) => `Pursued ${fuDays.get(o.id)} days ago, no status logged`)}
 ${section('Closing before next Monday', closingRows, (o) => `Closes ${formatDate(o.deadline)} · ${o.verdict === 'call' ? 'Call this week' : 'Watch'}`)}
 ${section('Call this week', callRows, () => 'Call this week')}
 ${section('Late finds', lateRows, (o) => `Late find · published ${formatDate(o.published_at)}`)}
+${outreach.length ? `<tr><td style="padding-top:18px;font-size:13px;font-weight:700;color:#1f3a5f;text-transform:uppercase;letter-spacing:.04em">Outreach you copied this week</td></tr><tr><td style="font-size:14px;color:#1b2333;padding-top:6px">${outreach.map((x) => `${esc(x.o.company)} (${esc(formatDate(x.at))})`).join(' · ')}</td></tr>` : ''}
 <tr><td style="padding-top:18px;font-size:13px;color:#505a6b">${failed ? '' : `Watch: ${i.lists.watch.length} · Policy updates: ${i.lists.policy.length}. `}<a href="${esc(i.appUrl)}" style="color:#1f3a5f">Open the workspace</a> for evidence, drafts and the full list. This email never contacts anyone.</td></tr>
+<tr><td style="padding-top:12px;font-size:13px;color:#1b2333;background:#f6f3ec;padding:8px"><b>Reminder:</b> open the dashboard this week to review the list, copy a draft, and log what happened with each company you contacted.</td></tr>
 </table></td></tr></table></body></html>`;
 
   const t = (rows: { o: Opportunity }[], title: string) =>
     rows.length ? `\n${title.toUpperCase()}\n` + rows.map(({ o }) => `- ${o.company}: ${o.why_matters}\n  ${o.why_now}. Evidence: ${o.confidence}.\n  Next: ${o.next_action}`).join('\n') + '\n' : '';
-  const text = `CSR Partnership Radar, week of ${week}\n${status}\n${t(closingRows, 'Closing before next Monday')}${t(callRows, 'Call this week')}${t(lateRows, 'Late finds')}\n${failed ? '' : `Watch: ${i.lists.watch.length}. Policy updates: ${i.lists.policy.length}.\n`}Workspace: ${i.appUrl}\nThis email never contacts anyone.`;
+  const text = `CSR Partnership Radar, week of ${week}\n${status}\n${t(closingRows, 'Closing before next Monday')}${t(callRows, 'Call this week')}${t(lateRows, 'Late finds')}${fu.length && !failed ? `\nFOLLOW-UPS DUE\n` + fu.map((f) => `- ${f.o.company}: pursued ${f.days} days ago, no status logged`).join('\n') + '\n' : ''}${outreach.length ? `\nOUTREACH YOU COPIED THIS WEEK\n` + outreach.map((x) => `- ${x.o.company} (${formatDate(x.at)})`).join('\n') + '\n' : ''}\n${failed ? '' : `Watch: ${i.lists.watch.length}. Policy updates: ${i.lists.policy.length}.\n`}Workspace: ${i.appUrl}\nReminder: open the dashboard this week to review the list, copy a draft, and log what happened with each company you contacted.\nThis email never contacts anyone.`;
 
   const subject = failed ? `CSR Radar: this week's run did not finish (${week})` : calls.length ? `CSR Radar: ${calls.length} to call this week (${week})` : `CSR Radar: nothing to call this week (${week})`;
-  return { variant, subject: i.delayed ? `Delayed: ${subject}` : subject, html, text, clusterIds: [...ids] };
+  const subjectFinal = !failed && fu.length ? `${subject.replace(` (${week})`, '')}, ${fu.length} follow-up${fu.length === 1 ? '' : 's'} (${week})` : subject;
+  return { variant, subject: i.delayed ? `Delayed: ${subjectFinal}` : subjectFinal, html, text, clusterIds: [...ids] };
 }
 
 export interface SendDeps {
