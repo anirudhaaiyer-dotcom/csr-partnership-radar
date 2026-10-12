@@ -49,6 +49,7 @@ With no environment variables set, the app starts in **demo mode**: no database,
 |---|---|
 | `DATABASE_URL` | Neon Postgres connection string. Without it, the app stays in demo mode. |
 | `GEMINI_API_KEY`, `GEMINI_MODEL` | Extraction and drafts. Default model `gemini-flash-latest`. |
+| `LUSHA_API_KEY` | Optional. Turns on the "Find their phone and email" lookup on the Outreach page (Lusha Person API v2, one named person per click, nothing stored). |
 | `RESEND_API_KEY`, `DIGEST_FROM`, `DIGEST_TO` | The Monday digest. `DIGEST_FROM` must be a sender verified in Resend. |
 | `APP_URL` | Public URL, used for links in the email. |
 | `CRON_SECRET` | Vercel sends it as `Authorization: Bearer` to the cron route. |

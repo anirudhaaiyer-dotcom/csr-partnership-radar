@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         )}
         <header className="top">
-          <span className="brand">CSR Partnership Radar</span>
+          <span className="brand"><i className="logo" aria-hidden="true" />CSR Partnership Radar</span>
           <Nav />
         </header>
         <main id="main">{children}</main>

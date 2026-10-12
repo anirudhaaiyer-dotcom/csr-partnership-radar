@@ -6,7 +6,9 @@ type Lead = { company: string; noticed: string; label: string };
 type Draft = { subject: string; body: string; short_message: string; warnings: string[]; model: string };
 const TONES: [string, string][] = [['warm', 'Warm introduction'], ['direct', 'Short and direct'], ['follow_up', 'Follow-up nudge']];
 
-export function OutreachClient({ leads, companies, writable, initial }: { leads: Lead[]; companies: { name: string; contact: string; role: string }[]; writable: boolean; initial: { company: string; noticed: string } }) {
+type Found = { found: boolean; name: string | null; title: string | null; company: string | null; linkedin: string | null; phones: { number: string; kind: string; doNotCall: boolean }[]; emails: { address: string; kind: string; confidence: string | null }[]; creditCharged: boolean; note: string | null };
+
+export function OutreachClient({ leads, companies, writable, lookupOn, initial }: { leads: Lead[]; companies: { name: string; contact: string; role: string }[]; writable: boolean; lookupOn: boolean; initial: { company: string; noticed: string } }) {
   const [company, setCompany] = useState(initial.company);
   const [contact, setContact] = useState('');
   const [role, setRole] = useState('');
@@ -20,6 +22,10 @@ export function OutreachClient({ leads, companies, writable, initial }: { leads:
   const [body, setBody] = useState('');
   const [short, setShort] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
+  const [linkedin, setLinkedin] = useState('');
+  const [looking, setLooking] = useState(false);
+  const [lookErr, setLookErr] = useState<string | null>(null);
+  const [found, setFound] = useState<Found | null>(null);
 
   function pickCompany(name: string) {
     setCompany(name);
@@ -38,6 +44,17 @@ export function OutreachClient({ leads, companies, writable, initial }: { leads:
       const d = (data as { draft: Draft }).draft;
       setDraft(d); setSubject(d.subject); setBody(d.body); setShort(d.short_message);
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  }
+  async function lookup() {
+    setLooking(true); setLookErr(null); setFound(null);
+    try {
+      const res = await fetch('/api/contact', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: contact, company, linkedin }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error || `Request failed (${res.status})`);
+      const f = (data as { contact: Found }).contact;
+      setFound(f);
+      if (f.found && f.title && !role) setRole(f.title);
+    } catch (e) { setLookErr((e as Error).message); } finally { setLooking(false); }
   }
   async function copy(what: string, text: string) {
     try { await navigator.clipboard.writeText(text); setCopied(what); } catch { setCopied(null); }
@@ -63,6 +80,36 @@ export function OutreachClient({ leads, companies, writable, initial }: { leads:
         <input type="text" id="o-ct" value={contact} onChange={(e) => setContact(e.target.value)} />
         <label htmlFor="o-rl">Their role (optional)</label>
         <input type="text" id="o-rl" value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Head of CSR" />
+        <details className="finder" open={!!found || !!lookErr}>
+          <summary>Find their phone and email</summary>
+          <p className="meta" style={{ margin: '8px 0 0' }}>Looks up one named person through Lusha. Uses a Lusha credit, runs only when you press the button, and nothing is saved.</p>
+          <label htmlFor="o-li">LinkedIn profile link (optional, more accurate than a name)</label>
+          <input type="text" id="o-li" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="https://www.linkedin.com/in/…" style={{ maxWidth: '100%' }} />
+          <div className="btns">
+            <button className="btn" type="button" disabled={!writable || !lookupOn || looking || (!linkedin.trim() && !(contact.trim().includes(' ') && company.trim()))} onClick={lookup}>{looking ? 'Looking…' : 'Find phone and email'}</button>
+          </div>
+          {!lookupOn && <p className="meta">Switched off: add LUSHA_API_KEY on the server to turn this on.</p>}
+          {lookErr && <p className="err" role="alert">{lookErr}</p>}
+          {found && (
+            <div className="found" role="status">
+              {!found.found ? <span>{found.note}</span> : (
+                <>
+                  <div><span className="who">{found.name}</span>{found.title ? `, ${found.title}` : ''}{found.company ? ` at ${found.company}` : ''}</div>
+                  {found.note && <div className="meta">{found.note}</div>}
+                  <ul>
+                    {found.phones.map((p) => (
+                      <li key={p.number}><span className="val">{p.number}</span><span className="kind">{p.kind}</span>{p.doNotCall && <span className="chip dnc">Do not call</span>}<button className="btn" type="button" onClick={() => copy('p' + p.number, p.number)}>{copied === 'p' + p.number ? 'Copied' : 'Copy'}</button></li>
+                    ))}
+                    {found.emails.map((m) => (
+                      <li key={m.address}><span className="val">{m.address}</span><span className="kind">{m.kind}{m.confidence ? `, confidence ${m.confidence}` : ''}</span><button className="btn" type="button" onClick={() => copy('e' + m.address, m.address)}>{copied === 'e' + m.address ? 'Copied' : 'Copy'}</button></li>
+                    ))}
+                  </ul>
+                  <p className="meta" style={{ margin: '8px 0 0' }}>Business contact details from Lusha. Respect Do Not Call flags and Indian telemarketing rules; check consent before you phone or message.</p>
+                </>
+              )}
+            </div>
+          )}
+        </details>
         <label htmlFor="o-nt">What did you notice? (optional, the draft will only use what you write here)</label>
         <textarea id="o-nt" value={noticed} onChange={(e) => setNoticed(e.target.value)} placeholder="e.g. They opened a skilling centre in Chakan for 220 unemployed youth." />
         <label htmlFor="o-ask">Your ask (optional)</label>

@@ -21,7 +21,7 @@ export default async function Outreach({ searchParams }: { searchParams: Promise
     <>
       <h1>Outreach</h1>
       <p className="sub">Draft a first email to any company, whether or not it is on this week&apos;s list. You review it and send it yourself.</p>
-      <OutreachClient leads={leads} companies={companies} writable={writesEnabled()} initial={{ company: sp.company ?? '', noticed: sp.noticed ?? '' }} />
+      <OutreachClient leads={leads} companies={companies} writable={writesEnabled()} lookupOn={!!process.env.LUSHA_API_KEY} initial={{ company: sp.company ?? '', noticed: sp.noticed ?? '' }} />
     </>
   );
 }
