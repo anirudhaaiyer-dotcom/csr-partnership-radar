@@ -1,0 +1,352 @@
+{
+ "asOf": "2026-10-12T04:00:00Z",
+ "note": "Headline plus short verbatim quotes retrieved through a page summariser; quotes are medium-trust where marked. Extraction was done by hand and every quote is checked against the stored text by a test.",
+ "articles": [
+  {
+   "url": "https://indiacsr.in/csr-sona-comstar-tata-strive-open-skill-centre-in-chakan/",
+   "title": "CSR: Sona Comstar, Tata STRIVE Open Skill Centre in Chakan",
+   "publisher": "India CSR",
+   "publisher_domain": "indiacsr.in",
+   "published_at": "2026-08-01T00:00:00+05:30",
+   "quotes": [
+    "Sona Comstar has expanded its industry-led skilling initiative",
+    "will train 220 unemployed youth in CNC Operations",
+    "Skill Development Centre in Chakan, Pune",
+    "practical, industry-relevant skills that improve employability and support sustainable livelihoods"
+   ],
+   "verbatim_confidence": "high",
+   "ex": {
+    "company": [
+     "Sona Comstar",
+     "Sona Comstar has expanded its industry-led skilling initiative"
+    ],
+    "signal": [
+     "allocation",
+     "Sona Comstar has expanded its industry-led skilling initiative"
+    ],
+    "beneficiary": [
+     "youth_general",
+     "will train 220 unemployed youth in CNC Operations"
+    ],
+    "sector": [
+     "skilling_placement",
+     "practical, industry-relevant skills that improve employability and support sustainable livelihoods"
+    ],
+    "geography": [
+     "pune",
+     "Skill Development Centre in Chakan, Pune"
+    ],
+    "schedule_vii": [
+     "fits",
+     "practical, industry-relevant skills that improve employability and support sustainable livelihoods"
+    ]
+   }
+  },
+  {
+   "url": "https://indiacsr.in/privi-speciality-chemicals-ai-learning-infrastructure-mahad/",
+   "title": "CSR: Privi Speciality Chemicals Brings AI Education to Mahad",
+   "publisher": "India CSR",
+   "publisher_domain": "indiacsr.in",
+   "published_at": "2026-08-11T00:00:00+05:30",
+   "quotes": [
+    "designed to equip students with future-ready skills and exposure to emerging technologies",
+    "at Hirwal Education Trust’s College of Science, Computer Science and Information Technology in Mahad",
+    "The AI Centre has been established with the objective of providing students with hands-on exposure"
+   ],
+   "verbatim_confidence": "medium",
+   "ex": {
+    "company": [
+     "Privi Speciality Chemicals",
+     "Privi Speciality Chemicals Brings AI Education to Mahad"
+    ],
+    "signal": [
+     "allocation",
+     "The AI Centre has been established with the objective of providing students with hands-on exposure"
+    ],
+    "beneficiary": [
+     "youth_general",
+     "designed to equip students with future-ready skills and exposure to emerging technologies"
+    ],
+    "sector": [
+     "other_education",
+     "at Hirwal Education Trust’s College of Science, Computer Science and Information Technology in Mahad"
+    ],
+    "schedule_vii": [
+     "fits",
+     "The AI Centre has been established with the objective of providing students with hands-on exposure"
+    ]
+   }
+  },
+  {
+   "url": "https://indiacsr.in/ongc-75000-deskits-750-schools-csr-education/",
+   "title": "ONGC Distributes 75,000 Deskits to Students Across 750 Schools Under FY26 CSR Education Initiative",
+   "publisher": "India CSR",
+   "publisher_domain": "indiacsr.in",
+   "published_at": "2026-08-12T00:00:00+05:30",
+   "quotes": [
+    "Oil and Natural Gas Corporation Ltd (ONGC) distributed 75,000 Deskits",
+    "The company reported CSR spending of Rs 942.88 crore in FY2025-26",
+    "75,000 students across 750 government and other non-formal schools",
+    "in six states and Union Territories"
+   ],
+   "verbatim_confidence": "high",
+   "ex": {
+    "company": [
+     "Oil and Natural Gas Corporation Ltd (ONGC)",
+     "Oil and Natural Gas Corporation Ltd (ONGC) distributed 75,000 Deskits"
+    ],
+    "signal": [
+     "allocation",
+     "The company reported CSR spending of Rs 942.88 crore in FY2025-26"
+    ],
+    "beneficiary": [
+     "youth_general",
+     "75,000 students across 750 government and other non-formal schools"
+    ],
+    "sector": [
+     "other_education",
+     "75,000 students across 750 government and other non-formal schools"
+    ],
+    "geography": [
+     "other",
+     "in six states and Union Territories"
+    ],
+    "scale_cr": [
+     942.88,
+     "Rs 942.88 crore"
+    ],
+    "schedule_vii": [
+     "fits",
+     "75,000 students across 750 government and other non-formal schools"
+    ]
+   }
+  },
+  {
+   "url": "https://indiacsr.in/shree-refrigerations-ai-robotics-stem-education-maharashtra/",
+   "title": "CSR: Shree Refrigerations Funds AI, Robotics, STEM Education in Maharashtra",
+   "publisher": "India CSR",
+   "publisher_domain": "indiacsr.in",
+   "published_at": "2026-09-24T00:00:00+05:30",
+   "quotes": [
+    "has extended CSR support towards strengthening educational infrastructure",
+    "the Centre serves students from rural and economically disadvantaged communities",
+    "at Devrukh in Ratnagiri district",
+    "Janakalyan Pratishthan’s Saraswati Educational Campus in Karad"
+   ],
+   "verbatim_confidence": "high",
+   "ex": {
+    "company": [
+     "Shree Refrigerations",
+     "CSR: Shree Refrigerations Funds AI, Robotics, STEM Education in Maharashtra"
+    ],
+    "signal": [
+     "allocation",
+     "has extended CSR support towards strengthening educational infrastructure"
+    ],
+    "beneficiary": [
+     "low_income_youth",
+     "the Centre serves students from rural and economically disadvantaged communities"
+    ],
+    "sector": [
+     "other_education",
+     "Funds AI, Robotics, STEM Education in Maharashtra"
+    ],
+    "geography": [
+     "maharashtra",
+     "STEM Education in Maharashtra"
+    ],
+    "schedule_vii": [
+     "fits",
+     "the Centre serves students from rural and economically disadvantaged communities"
+    ]
+   }
+  },
+  {
+   "url": "https://indiacsr.in/castrol-india-csr-skilling-centre-kolkata-ujjwal-kal/",
+   "title": "Castrol India Opens First CSR Skilling Centre in Kolkata Under Ujjwal Kal",
+   "publisher": "India CSR",
+   "publisher_domain": "indiacsr.in",
+   "published_at": "2026-10-01T00:00:00+05:30",
+   "quotes": [
+    "Castrol India Limited, in association with Smile Foundation, has unveiled its first",
+    "equip young adults from economically disadvantaged communities with industry-relevant skills",
+    "Located at the Smile Foundation STeP Centre in Santoshpur",
+    "The centre will provide training in digital technologies, artificial intelligence, retail, and beauty and wellness"
+   ],
+   "verbatim_confidence": "high",
+   "ex": {
+    "company": [
+     "Castrol India Limited",
+     "Castrol India Limited, in association with Smile Foundation, has unveiled its first"
+    ],
+    "signal": [
+     "allocation",
+     "Castrol India Limited, in association with Smile Foundation, has unveiled its first"
+    ],
+    "beneficiary": [
+     "low_income_youth",
+     "equip young adults from economically disadvantaged communities with industry-relevant skills"
+    ],
+    "sector": [
+     "skilling_placement",
+     "equip young adults from economically disadvantaged communities with industry-relevant skills"
+    ],
+    "geography": [
+     "other",
+     "Castrol India Opens First CSR Skilling Centre in Kolkata Under Ujjwal Kal"
+    ],
+    "foundation": [
+     "Smile Foundation",
+     "in association with Smile Foundation"
+    ],
+    "schedule_vii": [
+     "fits",
+     "equip young adults from economically disadvantaged communities with industry-relevant skills"
+    ]
+   }
+  },
+  {
+   "url": "https://indiacsr.in/bel-csr-spending-fy-2025-26-rs-107-79-crore/",
+   "title": "Bharat Electronics Reports Rs 107.79 Crore CSR Obligation for FY 2025-26, 21.4 Lakh Beneficiaries",
+   "publisher": "India CSR",
+   "publisher_domain": "indiacsr.in",
+   "published_at": "2026-10-07T00:00:00+05:30",
+   "quotes": [
+    "Bharat Electronics Limited (BEL), a Navratna public sector defence electronics company",
+    "CSR obligation of Rs 107.79 crore for FY 2025-26",
+    "healthcare, education, skilling, rural development, women empowerment and armed forces welfare",
+    "Projects also covered several NITI Aayog Aspirational Districts"
+   ],
+   "verbatim_confidence": "medium",
+   "ex": {
+    "company": [
+     "Bharat Electronics Limited (BEL)",
+     "Bharat Electronics Limited (BEL), a Navratna public sector defence electronics company"
+    ],
+    "signal": [
+     "allocation",
+     "CSR obligation of Rs 107.79 crore for FY 2025-26"
+    ],
+    "sector": [
+     "other_education",
+     "healthcare, education, skilling, rural development, women empowerment and armed forces welfare"
+    ],
+    "scale_cr": [
+     107.79,
+     "Rs 107.79 crore"
+    ]
+   }
+  },
+  {
+   "url": "https://indiacsr.in/beml-csr-spending-fy-2025-26-rs-7-27-crore/",
+   "title": "BEML Spends Rs 7.27 Crore on CSR in FY 2025-26, Exceeds Statutory Obligation",
+   "publisher": "India CSR",
+   "publisher_domain": "indiacsr.in",
+   "published_at": "2026-10-07T00:00:00+05:30",
+   "quotes": [
+    "spent Rs 7.27 crore on Corporate Social Responsibility (CSR) in FY 2025-26",
+    "provided education to 2,989 students, including 2,024 students from non-BEML families",
+    "In East Champaran district, Bihar, the company worked with the Kaushalya Foundation",
+    "BEML also collaborated with the Department of Factories, Boilers, Industrial Safety and Health"
+   ],
+   "verbatim_confidence": "medium",
+   "ex": {
+    "company": [
+     "BEML",
+     "BEML Spends Rs 7.27 Crore on CSR in FY 2025-26, Exceeds Statutory Obligation"
+    ],
+    "signal": [
+     "allocation",
+     "spent Rs 7.27 crore on Corporate Social Responsibility (CSR) in FY 2025-26"
+    ],
+    "beneficiary": [
+     "youth_general",
+     "provided education to 2,989 students, including 2,024 students from non-BEML families"
+    ],
+    "sector": [
+     "other_education",
+     "provided education to 2,989 students, including 2,024 students from non-BEML families"
+    ],
+    "geography": [
+     "other",
+     "In East Champaran district, Bihar, the company worked with the Kaushalya Foundation"
+    ],
+    "scale_cr": [
+     7.27,
+     "Rs 7.27 crore"
+    ],
+    "foundation": [
+     "Kaushalya Foundation",
+     "the Kaushalya Foundation"
+    ]
+   }
+  },
+  {
+   "url": "https://indiacsr.in/vedanta-power-csr-87000-people-fy26-4-lakh/",
+   "title": "Vedanta Power CSR Benefits 87,000 People in FY26, Nearly 4 Lakh to Date",
+   "publisher": "India CSR",
+   "publisher_domain": "indiacsr.in",
+   "published_at": "2026-10-07T00:00:00+05:30",
+   "quotes": [
+    "Together, Vedanta Power’s CSR interventions benefited nearly 87,000 people during FY2025-26",
+    "programmes spanning education, healthcare, sustainable livelihoods, women’s empowerment, water and sanitation",
+    "supplying 15,000 litres of drinking water daily to 300 households"
+   ],
+   "verbatim_confidence": "medium",
+   "ex": {
+    "company": [
+     "Vedanta Power",
+     "Together, Vedanta Power’s CSR interventions benefited nearly 87,000 people during FY2025-26"
+    ],
+    "signal": [
+     "allocation",
+     "Together, Vedanta Power’s CSR interventions benefited nearly 87,000 people during FY2025-26"
+    ],
+    "sector": [
+     "other_education",
+     "programmes spanning education, healthcare, sustainable livelihoods, women’s empowerment, water and sanitation"
+    ]
+   }
+  },
+  {
+   "url": "https://thecsruniverse.com/articles/etasha-society-launches-digisaksham-to-promote-online-safety",
+   "title": "ETASHA Society Launches DigiSaksham to Promote Online Safety",
+   "publisher": "The CSR Universe",
+   "publisher_domain": "thecsruniverse.com",
+   "published_at": "2026-10-09T00:00:00+05:30",
+   "quotes": [
+    "Supported by BT Group and British Asian Trust",
+    "a free online learning platform designed to help students and young people",
+    "students and young people from underserved communities",
+    "The initiative aims to reach 20,000 people"
+   ],
+   "verbatim_confidence": "high",
+   "ex": {
+    "company": [
+     "BT Group",
+     "Supported by BT Group and British Asian Trust"
+    ],
+    "signal": [
+     "allocation",
+     "a free online learning platform designed to help students and young people"
+    ],
+    "beneficiary": [
+     "low_income_youth",
+     "students and young people from underserved communities"
+    ],
+    "sector": [
+     "digital_youth_employment",
+     "ETASHA Society Launches DigiSaksham to Promote Online Safety"
+    ],
+    "foundation": [
+     "British Asian Trust",
+     "British Asian Trust"
+    ],
+    "schedule_vii": [
+     "fits",
+     "a free online learning platform designed to help students and young people"
+    ]
+   }
+  }
+ ]
+}
