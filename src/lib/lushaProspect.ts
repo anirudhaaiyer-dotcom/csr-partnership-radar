@@ -27,7 +27,7 @@ export type Revealed = {
 };
 
 /** Job titles that usually own CSR partnerships. Matching is done by Lusha. */
-export const CSR_TITLES = ['CSR', 'Corporate Social Responsibility', 'Sustainability', 'ESG', 'Corporate Affairs', 'Foundation', 'Philanthropy', 'Social Impact', 'Community'];
+export const CSR_TITLES = ['CSR', 'Corporate Social Responsibility', 'Sustainability', 'ESG', 'Corporate Affairs', 'Philanthropy', 'Social Impact', 'Corporate Citizenship', 'Community Relations'];
 
 const STATUS_TEXT: Record<number, string> = {
   400: 'Lusha could not read that search.',
@@ -65,6 +65,9 @@ export function parsePeople(raw: unknown): PeopleResult {
         linkedin: p.socialLinks?.linkedin ? String(p.socialLinks.linkedin) : null,
       };
     });
+  // People based in India come first: this NGO works in Pune and Maharashtra.
+  const inIndia = (p: Person) => (p.location ?? '').toLowerCase().includes('india') ? 0 : 1;
+  people.sort((a, b) => inIndia(a) - inIndia(b));
   return {
     people,
     total: typeof r.pagination?.total === 'number' ? r.pagination.total : null,

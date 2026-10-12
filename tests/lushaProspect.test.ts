@@ -18,6 +18,9 @@ describe('Lusha people search and reveal', () => {
     expect(r.people[0]).toMatchObject({ id: '1', name: 'Asha Rao', title: 'Head of CSR', location: 'Pune, India', linkedin: 'https://www.linkedin.com/in/asha' });
     expect(r.creditsCharged).toBe(1);
     expect(parsePeople({ results: [] }).note).toMatch(/no CSR/i);
+    const order = parsePeople({ results: [{ id: 'a', firstName: 'Far', lastName: 'Away', location: { country: 'Taiwan' } }, { id: 'b', firstName: 'Near', lastName: 'Home', location: { city: 'Pune', country: 'India' } }] });
+    expect(order.people.map((p) => p.id)).toEqual(['b', 'a']);
+    expect(CSR_TITLES).not.toContain('Foundation');
   });
   it('reads revealed phones and emails and keeps the do-not-call flag', () => {
     const r = parseRevealed({ results: [{ id: '1', phones: [{ number: '+919820000000', type: 'mobile', doNotCall: true }], emails: [{ email: 'asha@example.com', type: 'work', confidence: 'A+' }] }], billing: { creditsCharged: 2 } });
