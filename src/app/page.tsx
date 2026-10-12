@@ -68,7 +68,7 @@ export default async function Priorities() {
         <span><b>Watch:</b> {ws.settings.watch_min}–{ws.settings.call_min - 1}. Relevant, not yet a reason to call.</span>
         <span><b>Emerging:</b> {EMERGING_MIN}–{ws.settings.watch_min - 1}. Active in your space, keep an eye.</span>
       </div>
-      {scored.length + lists.policy.length > 0 && <Glance leads={{ call: lists.call, watch: lists.watch, emerging: lists.emerging, policy: lists.policy }} reviewed={latest?.reviewed ?? 0} extracted={latest?.extracted ?? 0} thresholds={thresholds} runLabel={latest ? `Latest run, ${formatDateTimeIST(latest.finished_at)}` : ''} />}
+      {scored.length + lists.policy.length > 0 && <Glance leads={{ call: lists.call, watch: lists.watch, emerging: lists.emerging, policy: lists.policy }} reviewed={latest?.reviewed ?? 0} extracted={ws.all.length} thresholds={thresholds} runLabel={latest ? `Latest run, ${formatDateTimeIST(latest.finished_at)}` : ''} />}
 
       {ws.readiness.state === 'failed' && <div className="strip bad" role="alert">NGO readiness check failed, so every item is excluded. {ws.readiness.reason} Fix it in Settings.</div>}
 

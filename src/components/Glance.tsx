@@ -43,7 +43,7 @@ export function Glance({ leads, reviewed, extracted, thresholds, runLabel }: {
         <div>
           <h3 className="gh">From headlines to leads</h3>
           <Bar label="Items reviewed" value={reviewed} max={maxFun} tone="muted" />
-          <Bar label="Read by the AI" value={extracted} max={maxFun} />
+          <Bar label="Companies found" value={extracted} max={maxFun} />
           <Bar label="Leads shown" value={leadCount} max={maxFun} tone="green" />
           <p className="meta">{runLabel}</p>
         </div>
