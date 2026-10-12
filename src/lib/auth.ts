@@ -17,14 +17,15 @@ export function basicOk(header: string | null, password: string): boolean {
 export const challenge = () =>
   new Response('Sign in to CSR Partnership Radar', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="CSR Partnership Radar", charset="UTF-8"' } });
 
-/** True when write actions are possible: a password protects the app, or we are in local development. */
-export const writesEnabled = () => !!process.env.APP_PASSWORD || process.env.NODE_ENV !== 'production';
+/** True when write actions are possible: a password protects the app, ALLOW_OPEN_WRITES=true is set (demo mode, no password), or we are in local development. */
+export const openWrites = () => process.env.ALLOW_OPEN_WRITES === 'true';
+export const writesEnabled = () => !!process.env.APP_PASSWORD || openWrites() || process.env.NODE_ENV !== 'production';
 
 /** Returns an error Response when the caller may not write, or null when allowed. */
 export function checkWrite(req: Request): Response | null {
   const pw = process.env.APP_PASSWORD;
   if (pw) return basicOk(req.headers.get('authorization'), pw) ? null : challenge();
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === 'production' && !openWrites()) {
     return Response.json({ error: 'Changes are disabled until APP_PASSWORD is set on the server.' }, { status: 403 });
   }
   return null;
