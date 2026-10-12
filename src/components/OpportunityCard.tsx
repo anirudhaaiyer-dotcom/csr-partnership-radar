@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { DraftRow, Opportunity } from '@/lib/types';
 import { formatDate } from '@/lib/time';
+import { ContactFinder, nameOf } from '@/components/ContactFinder';
 
 const GEO: Record<string, string> = { pune: 'Pune', maharashtra: 'Maharashtra', pan_india: 'Pan-India', base_maharashtra: 'Company base in Maharashtra', other: 'Other' };
 const SIGNAL: Record<string, string> = { partner_search: 'Partner search', initiative_budget: 'New initiative with budget', allocation: 'CSR initiative or allocation', policy: 'Policy update', none: 'Unclear' };
@@ -15,8 +16,9 @@ async function post(url: string, body: unknown) {
   return data as Record<string, unknown>;
 }
 
-export function OpportunityCard({ o, initialDraft, writable }: { o: Opportunity; initialDraft: DraftRow | null; writable: boolean }) {
+export function OpportunityCard({ o, initialDraft, writable, lookupOn = false }: { o: Opportunity; initialDraft: DraftRow | null; writable: boolean; lookupOn?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [finder, setFinder] = useState(false);
   const [dismissed, setDismissed] = useState(o.dismissed);
   const [pursued, setPursued] = useState(o.pursued);
   const [busy, setBusy] = useState(false);
@@ -80,6 +82,7 @@ export function OpportunityCard({ o, initialDraft, writable }: { o: Opportunity;
               {busy ? 'Working…' : pursued ? 'Draft ready below' : 'Pursue (creates a draft email)'}
             </button>
             <button className="btn" type="button" disabled={!writable || busy} onClick={() => act(async () => { await post('/api/event', { id: o.id, kind: 'not_for_us' }); setDismissed(true); })}>Not for us</button>
+            <button className="btn" type="button" aria-expanded={finder} aria-controls={`cf-${o.id}`} onClick={() => setFinder(!finder)}>{finder ? 'Hide contact finder' : 'Find contact'}</button>
           </>
         )}
         <button className="btn" type="button" aria-expanded={open} aria-controls={`p-${o.id}`}
@@ -88,6 +91,12 @@ export function OpportunityCard({ o, initialDraft, writable }: { o: Opportunity;
         </button>
       </div>
       {err && <p className="err" role="alert">{err}</p>}
+
+      {scored && finder && (
+        <div id={`cf-${o.id}`}>
+          <ContactFinder company={o.company} defaultName={nameOf(o.contact)} writable={writable} lookupOn={lookupOn} />
+        </div>
+      )}
 
       {pursued && (
         <div className="draft" role="group" aria-label="Draft email">
@@ -173,7 +182,7 @@ export function OpportunityCard({ o, initialDraft, writable }: { o: Opportunity;
         {scored && (
           <>
             <h4>4. Contact</h4>
-            <p>{o.contact ?? <i>No contact added. Add one on the Companies screen.</i>}</p>
+            <p>{o.contact ?? <i>No contact on file. Use Find contact above, or add one on the Companies screen.</i>}</p>
             <h4>5. Record outcome</h4>
             <div className="row">
               <select className="f" aria-label="Outreach status" disabled={!writable} defaultValue="" onChange={(e) => e.target.value && act(async () => { await post('/api/event', { id: o.id, kind: 'status', payload: { status: e.target.value } }); })}>

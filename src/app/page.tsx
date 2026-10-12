@@ -19,7 +19,7 @@ export default async function Priorities() {
 
   const drafts = new Map<string, DraftRow | null>();
   await Promise.all([...lists.call, ...lists.watch, ...lists.late, ...lists.closing].filter((o) => o.pursued).map(async (o) => drafts.set(o.id, await r.getDraft(o.id))));
-  const card = (o: Opportunity, k: string) => <OpportunityCard key={k + o.id} o={o} initialDraft={drafts.get(o.id) ?? null} writable={writable} />;
+  const card = (o: Opportunity, k: string) => <OpportunityCard key={k + o.id} o={o} initialDraft={drafts.get(o.id) ?? null} writable={writable} lookupOn={!!process.env.LUSHA_API_KEY} />;
 
   const dataLabel = { current: 'Current', stale: 'Stale', failed: 'Failed', partial: 'Partial', never: ws.demo ? 'Demo' : 'No run yet' }[ws.status];
   const stripClass = ws.status === 'failed' ? 'strip bad' : ws.status === 'stale' || ws.status === 'partial' ? 'strip warn' : 'strip';
