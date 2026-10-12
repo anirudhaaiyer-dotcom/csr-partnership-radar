@@ -136,4 +136,18 @@ export async function sendDigest(deps: SendDeps, content: DigestContent): Promis
   }
 }
 
+/** One-off test copy of a digest, marked [TEST]. Does not touch the digests table, so it never blocks the real weekly send. */
+export async function sendTestDigest(deps: Omit<SendDeps, 'repo'>, content: DigestContent): Promise<{ ok: true; id: string | null } | { ok: false; status: number; error: string }> {
+  const { resendKey, from, to } = deps;
+  if (!resendKey || !from || !to) return { ok: false, status: 400, error: 'RESEND_API_KEY, DIGEST_FROM or DIGEST_TO is not set' };
+  const res = await fetchRetry(
+    'https://api.resend.com/emails',
+    { method: 'POST', headers: { authorization: `Bearer ${resendKey}`, 'content-type': 'application/json' }, body: JSON.stringify({ from, to: [to], subject: `[TEST] ${content.subject}`, html: content.html, text: content.text }), timeoutMs: 15000, retries: 0 },
+    deps.fetchImpl,
+  );
+  const body = (await res.json().catch(() => ({}))) as { id?: string; message?: string };
+  if (!res.ok) return { ok: false, status: res.status, error: body.message ?? 'Resend rejected the request' };
+  return { ok: true, id: body.id ?? null };
+}
+
 export { geoLabel };
