@@ -77,7 +77,7 @@ export function OpportunityCard({ o, initialDraft, writable }: { o: Opportunity;
                 if (d.draft) { setSubject(d.draft.subject); setBody(d.draft.body); setWarnings(d.draft.warnings); }
                 if (d.error) setNote(d.error);
               })}>
-              {busy ? 'Working…' : pursued ? 'Draft shown below' : 'Pursue (creates a draft email)'}
+              {busy ? 'Working…' : pursued ? 'Draft ready below' : 'Pursue (creates a draft email)'}
             </button>
             <button className="btn" type="button" disabled={!writable || busy} onClick={() => act(async () => { await post('/api/event', { id: o.id, kind: 'not_for_us' }); setDismissed(true); })}>Not for us</button>
           </>
@@ -99,10 +99,20 @@ export function OpportunityCard({ o, initialDraft, writable }: { o: Opportunity;
           <label htmlFor={`bd-${o.id}`}>Message</label>
           <textarea id={`bd-${o.id}`} value={body} onChange={(e) => setBody(e.target.value)} onBlur={() => writable && (subject || body) && post('/api/draft', { id: o.id, subject, body }).catch(() => {})} />
           <div className="btns">
-            <button className="btn" type="button" onClick={async () => { try { await navigator.clipboard.writeText(`${subject}\n\n${body}`); setCopied(true); writable && post('/api/event', { id: o.id, kind: 'draft_copied' }).catch(() => {}); } catch { setCopied(false); } }}>{copied ? 'Copied' : 'Copy'}</button>
-            <a className="btn" href={`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}>Open in my mail app</a>
+            <button className="btn primary" type="button" onClick={async () => {
+              const text = `${subject}\n\n${body}`;
+              try { await navigator.clipboard.writeText(text); }
+              catch {
+                try { const t = document.getElementById(`bd-${o.id}`) as HTMLTextAreaElement | null; t?.select(); document.execCommand('copy'); } catch { /* shown below */ }
+              }
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2500);
+              writable && post('/api/event', { id: o.id, kind: 'draft_copied' }).catch(() => {});
+            }}>{copied ? 'Copied to clipboard' : 'Copy subject and message'}</button>
+            <a className="btn" target="_blank" rel="noopener noreferrer" href={`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}>Open in Gmail</a>
+            <a className="btn" href={`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}>Open in mail app</a>
           </div>
-          <p className="meta" style={{ margin: '8px 0 0' }}>This tool never sends email. You send it from your own mail app.</p>
+          <p className="meta" style={{ margin: '8px 0 0' }} role="status" aria-live="polite">{copied ? 'Copied. Paste it into your email and send it yourself.' : 'This tool never sends email. You send it yourself.'}</p>
         </div>
       )}
 

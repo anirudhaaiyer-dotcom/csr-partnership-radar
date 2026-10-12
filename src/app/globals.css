@@ -35,7 +35,7 @@ body{margin:0;background:var(--canvas);color:var(--ink);font:15px/1.6 "Inter",ui
 .proto select,.proto button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:3px 8px}
 
 /* Header */
-header.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:28px;padding:12px 28px;background:color-mix(in srgb,var(--surface) 82%,transparent);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:28px;padding:12px 28px;background:color-mix(in srgb,var(--surface) 97%,transparent);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line);flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em;color:var(--ink);font-size:16px}
 .logo{width:26px;height:26px;border-radius:9px;background:var(--hero);position:relative;display:inline-block;box-shadow:0 2px 8px rgba(59,79,216,.35)}
 .logo:before,.logo:after{content:"";position:absolute;border-radius:50%;border:1.6px solid rgba(255,255,255,.9)}
