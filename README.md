@@ -40,14 +40,14 @@ With no environment variables set, the app starts in **demo mode**: no database,
 
 ## Deploy
 
-1. **Supabase**: create a project, then run `supabase/migrations/001_init.sql` in the SQL editor. Row level security is on with no policies; the app uses the service-role key from the server only.
+1. **Neon**: create a Neon Postgres project and copy its connection string (or add the Neon integration from the Vercel Storage tab, which sets `DATABASE_URL` for you). The app creates its own tables on first use; `db/schema.sql` holds the same statements.
 2. **GitHub**: push this folder to a public repository.
 3. **Vercel**: import the repository. Framework is detected as Next.js. `vercel.json` registers the cron.
 4. **Environment variables** (Vercel project settings, never in the repo):
 
 | Name | Purpose |
 |---|---|
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Storage. Without both, the app stays in demo mode. |
+| `DATABASE_URL` | Neon Postgres connection string. Without it, the app stays in demo mode. |
 | `GEMINI_API_KEY`, `GEMINI_MODEL` | Extraction and drafts. Default model `gemini-flash-latest`. |
 | `RESEND_API_KEY`, `DIGEST_FROM`, `DIGEST_TO` | The Monday digest. `DIGEST_FROM` must be a sender verified in Resend. |
 | `APP_URL` | Public URL, used for links in the email. |
@@ -65,11 +65,11 @@ With no environment variables set, the app starts in **demo mode**: no database,
 - `src/lib/sources/`: Google News RSS, GDELT, article body fetch (respects robots.txt).
 - `src/lib/pipeline.ts`: one run, with a lock so two runs cannot overlap.
 - `src/lib/digest.ts`: builds and sends the digest. This is the only file that talks to Resend, and `weekly.ts` is the only caller. Tests enforce both. The send is idempotent: a database unique key on (recipient, week) plus a Resend idempotency key.
-- `src/lib/repo/`: one interface, a Supabase adapter and an in-memory adapter.
+- `src/lib/repo/`: one interface, a Neon Postgres adapter and an in-memory adapter.
 
 ## Known limitations (read before trusting it)
 
-- **Not yet exercised live**: the Supabase adapter, Gemini, Resend, Google News and GDELT were developed against test doubles and recorded samples. The `gemini-flash-latest` alias, the Google News `when:` operator and the GDELT query syntax are unverified until the first deployed run.
+- **Not yet exercised live**: the Neon adapter (its SQL was checked against a local Postgres 16), Gemini, Resend, Google News and GDELT were developed against test doubles and recorded samples. The `gemini-flash-latest` alias, the Google News `when:` operator and the GDELT query syntax are unverified until the first deployed run.
 - **Google News links redirect**, so full article text is often unavailable and the extraction falls back to the headline and snippet. With headline-only evidence the app rarely reaches Call, and it says so through the evidence confidence label. This is deliberate: a Call needs quoted support.
 - **Seed data** is 9 real items gathered from public sources on 12 Oct 2026 and labelled as medium trust. They are there so the app has something real to show if every live source fails.
 - **Apollo** (contact enrichment) is deferred. There is no LinkedIn scraping. Contacts are entered by hand.

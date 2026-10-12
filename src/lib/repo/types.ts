@@ -1,7 +1,7 @@
 import type { Article, Company, DigestRow, DraftRow, EventRow, RunRow, Settings } from '../types';
 
 export interface Repo {
-  readonly kind: 'supabase' | 'memory';
+  readonly kind: 'neon' | 'memory';
   /** true when data does not persist (no database connected) */
   readonly demo: boolean;
 

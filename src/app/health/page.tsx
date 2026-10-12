@@ -12,7 +12,7 @@ export default async function Health() {
   const runs = await r.listRuns(10);
   const latest = runs.find((x) => x.status !== 'running');
   const env: [string, string][] = [
-    ['Database', r.demo ? 'Not connected (demo mode)' : 'Connected (Supabase)'],
+    ['Database', r.demo ? 'Not connected (demo mode)' : 'Connected (Neon Postgres)'],
     ['GEMINI_API_KEY', set(process.env.GEMINI_API_KEY)],
     ['GEMINI_MODEL', process.env.GEMINI_MODEL || 'gemini-flash-latest (default)'],
     ['RESEND_API_KEY', set(process.env.RESEND_API_KEY)],
