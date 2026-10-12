@@ -23,7 +23,7 @@ export default async function Priorities() {
   const stripClass = ws.status === 'failed' ? 'strip bad' : ws.status === 'stale' || ws.status === 'partial' ? 'strip warn' : 'strip';
   const sourcesOk = latest ? `${latest.sources.filter((s) => s.ok).length} of ${latest.sources.length}` : '—';
 
-  const nothing = lists.call.length + lists.watch.length + lists.policy.length + lists.closing.length + lists.late.length === 0;
+  const nothing = lists.call.length + lists.watch.length + lists.policy.length + lists.closing.length + lists.late.length + lists.emerging.length === 0;
 
   return (
     <>
@@ -45,6 +45,7 @@ export default async function Priorities() {
       <div className="nums" aria-label="Key numbers">
         <div className="num"><b>{lists.call.length}</b><span>Call this week</span></div>
         <div className="num"><b>{lists.watch.length}</b><span>Watch</span></div>
+        <div className="num"><b>{lists.emerging.length}</b><span>Emerging</span></div>
         <div className="num"><b>{lists.closing.length}</b><span>Closing before next Monday</span></div>
         <div className="num"><b>{dataLabel}</b><span>Data status</span></div>
       </div>
@@ -72,6 +73,18 @@ export default async function Priorities() {
       )}
 
       {lists.watch.length > 0 && <><h2>Watch</h2>{lists.watch.map((o) => card(o, 'w'))}</>}
+      {lists.emerging.length > 0 && (
+        <>
+          <h2>Emerging</h2>
+          <p className="sub">Real education or skilling CSR activity that scored below the Watch bar of {ws.settings.watch_min}. None is a partner search yet, so none is a reason to call, but these companies are active in your space. Evidence for every item is on the Research tab.</p>
+          {lists.emerging.map((o) => (
+            <div className="close" key={'em' + o.id}>
+              <b>{o.company}</b><span>{o.total}/100</span><span>{o.why_now}</span>
+              <a href={o.sources[0]?.url} target="_blank" rel="noreferrer">{o.sources[0]?.publisher ?? 'Source'}: {o.sources[0]?.title}</a>
+            </div>
+          ))}
+        </>
+      )}
       {lists.policy.length > 0 && <><h2>Policy updates</h2>{lists.policy.map((o) => card(o, 'p'))}</>}
       {lists.late.length > 0 && <><h2>Late finds</h2><p className="sub">Never shown before, aged 8 to 21 days, fresh score of at least {ws.settings.late_min_fresh_score}, at most {ws.settings.late_max}.</p>{lists.late.map((o) => card(o, 'l'))}</>}
 

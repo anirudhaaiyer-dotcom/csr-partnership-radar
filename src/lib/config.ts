@@ -49,6 +49,9 @@ export const DEFAULT_SETTINGS: Settings = {
 export const EXTRACT_BATCH = 4;
 export const MAX_EXTRACT_PER_RUN = 40;
 export const MAX_DIGEST_CALLS = 10;
+/** Skip-verdict items at or above this score are shown as Emerging: real activity in the NGO's space, but not yet a reason to call. */
+export const EMERGING_MIN = 15;
+export const MAX_EMERGING = 8;
 export const LOCK_TTL_MINUTES = 15;
 
 /** Publisher classification. Anything not listed is regional_trade (3); known blog platforms are blog (1). */

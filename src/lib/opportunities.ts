@@ -1,4 +1,4 @@
-import { MAX_DIGEST_CALLS } from './config';
+import { EMERGING_MIN, MAX_DIGEST_CALLS, MAX_EMERGING } from './config';
 import { checkExclusions, checkReadiness, checkScheduleVII, checkSection135, companyMatch } from './checks';
 import { scoreItem } from './scoring';
 import { ageDays, formatDate, isoToDay, istDay, nextMondayDay } from './time';
@@ -185,6 +185,7 @@ export interface Lists {
   policy: Opportunity[];
   closing: Opportunity[];
   late: Opportunity[];
+  emerging: Opportunity[];
   excluded: Opportunity[];
   skipped: number;
 }
@@ -210,10 +211,12 @@ export function selectLists(all: Opportunity[], settings: Settings): Lists {
     .sort((a, b) => (b.fresh_total ?? 0) - (a.fresh_total ?? 0))
     .slice(0, settings.late_max)
     .map((o) => ({ ...o, late_find: true }));
+  const skips = pool.filter((o) => o.verdict === 'skip');
+  const emerging = skips.filter((o) => (o.total ?? 0) >= EMERGING_MIN).sort(rank).slice(0, MAX_EMERGING);
   return {
-    call, watch, policy, closing, late,
+    call, watch, policy, closing, late, emerging,
     excluded: pool.filter((o) => o.verdict === 'excluded'),
-    skipped: pool.filter((o) => o.verdict === 'skip').length,
+    skipped: skips.length - emerging.length,
   };
 }
 

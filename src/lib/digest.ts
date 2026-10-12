@@ -67,7 +67,7 @@ export function buildDigest(i: DigestInput): DigestContent {
 
   let status: string;
   if (failed) status = `This week's run did not finish. Last successful run: ${i.lastGoodRunDate ? formatDate(i.lastGoodRunDate) : 'none yet'}. Nothing below is from this week.`;
-  else if (calls.length === 0 && closing.length === 0) status = `Run completed. ${i.reviewed} items reviewed, none reached Call this week.`;
+  else if (calls.length === 0 && closing.length === 0) status = `Run completed. ${i.reviewed} items reviewed, none reached Call this week.${(i.lists.emerging ?? []).length ? ` ${(i.lists.emerging ?? []).length} emerging item${(i.lists.emerging ?? []).length === 1 ? '' : 's'} to keep an eye on.` : ''}`;
   else status = `${calls.length} to call this week${closing.length ? `, ${closing.length} closing before next Monday` : ''}.`;
   const fu = i.activity?.followUps ?? [];
   if (!failed && fu.length) status += ` ${fu.length} follow-up${fu.length === 1 ? '' : 's'} due.`;
@@ -84,6 +84,7 @@ export function buildDigest(i: DigestInput): DigestContent {
   const fuRows = failed ? [] : fu.map((f) => ({ o: f.o }));
   const outreach = failed ? [] : i.activity?.outreach ?? [];
   const lateRows = failed ? [] : i.lists.late.map((o) => line(o));
+  const emerging = failed ? [] : (i.lists.emerging ?? []).slice(0, 5);
 
   const card = (o: Opportunity, tag: string) => {
     const unknown = o.checks.section135.state === 'unknown' ? ' · Section 135: Unknown' : '';
@@ -108,14 +109,15 @@ ${section('Follow-ups due', fuRows, (o) => `Pursued ${fuDays.get(o.id)} days ago
 ${section('Closing before next Monday', closingRows, (o) => `Closes ${formatDate(o.deadline)} · ${o.verdict === 'call' ? 'Call this week' : 'Watch'}`)}
 ${section('Call this week', callRows, () => 'Call this week')}
 ${section('Late finds', lateRows, (o) => `Late find · published ${formatDate(o.published_at)}`)}
+${emerging.length ? `<tr><td style="padding-top:18px;font-size:13px;font-weight:700;color:#1f3a5f;text-transform:uppercase;letter-spacing:.04em">Emerging, not yet a call</td></tr>${emerging.map((o) => `<tr><td style="padding:8px 0;border-top:1px solid #e5e2da;font-size:14px;color:#1b2333"><b>${esc(o.company)}</b> · ${o.total ?? ''}/100<div style="font-size:12px;color:#5d6675">${esc(o.why_now)} · <a href="${esc(o.sources[0]?.url ?? i.appUrl)}" style="color:#1f3a5f">${esc(o.sources[0]?.publisher ?? 'Source')}</a>: ${esc(o.sources[0]?.title ?? '')}</div></td></tr>`).join('')}` : ''}
 ${outreach.length ? `<tr><td style="padding-top:18px;font-size:13px;font-weight:700;color:#1f3a5f;text-transform:uppercase;letter-spacing:.04em">Outreach you copied this week</td></tr><tr><td style="font-size:14px;color:#1b2333;padding-top:6px">${outreach.map((x) => `${esc(x.o.company)} (${esc(formatDate(x.at))})`).join(' · ')}</td></tr>` : ''}
-<tr><td style="padding-top:18px;font-size:13px;color:#505a6b">${failed ? '' : `Watch: ${i.lists.watch.length} · Policy updates: ${i.lists.policy.length}. `}<a href="${esc(i.appUrl)}" style="color:#1f3a5f">Open the workspace</a> for evidence, drafts and the full list. This email never contacts anyone.</td></tr>
+<tr><td style="padding-top:18px;font-size:13px;color:#505a6b">${failed ? '' : `Watch: ${i.lists.watch.length} · Emerging: ${(i.lists.emerging ?? []).length} · Policy updates: ${i.lists.policy.length}. `}<a href="${esc(i.appUrl)}" style="color:#1f3a5f">Open the workspace</a> for evidence, drafts and the full list. This email never contacts anyone.</td></tr>
 <tr><td style="padding-top:12px;font-size:13px;color:#1b2333;background:#f6f3ec;padding:8px"><b>Reminder:</b> open the dashboard this week to review the list, copy a draft, and log what happened with each company you contacted.</td></tr>
 </table></td></tr></table></body></html>`;
 
   const t = (rows: { o: Opportunity }[], title: string) =>
     rows.length ? `\n${title.toUpperCase()}\n` + rows.map(({ o }) => `- ${o.company}: ${o.why_matters}\n  ${o.why_now}. Evidence: ${o.confidence}.\n  Next: ${o.next_action}`).join('\n') + '\n' : '';
-  const text = `CSR Partnership Radar, week of ${week}\n${status}\n${t(closingRows, 'Closing before next Monday')}${t(callRows, 'Call this week')}${t(lateRows, 'Late finds')}${fu.length && !failed ? `\nFOLLOW-UPS DUE\n` + fu.map((f) => `- ${f.o.company}: pursued ${f.days} days ago, no status logged`).join('\n') + '\n' : ''}${outreach.length ? `\nOUTREACH YOU COPIED THIS WEEK\n` + outreach.map((x) => `- ${x.o.company} (${formatDate(x.at)})`).join('\n') + '\n' : ''}\n${failed ? '' : `Watch: ${i.lists.watch.length}. Policy updates: ${i.lists.policy.length}.\n`}Workspace: ${i.appUrl}\nReminder: open the dashboard this week to review the list, copy a draft, and log what happened with each company you contacted.\nThis email never contacts anyone.`;
+  const text = `CSR Partnership Radar, week of ${week}\n${status}\n${t(closingRows, 'Closing before next Monday')}${t(callRows, 'Call this week')}${t(lateRows, 'Late finds')}${emerging.length ? `\nEMERGING, NOT YET A CALL\n` + emerging.map((o) => `- ${o.company} (${o.total ?? ''}/100): ${o.why_now}. ${o.sources[0]?.publisher ?? 'Source'}: ${o.sources[0]?.title ?? ''}`).join('\n') + '\n' : ''}${fu.length && !failed ? `\nFOLLOW-UPS DUE\n` + fu.map((f) => `- ${f.o.company}: pursued ${f.days} days ago, no status logged`).join('\n') + '\n' : ''}${outreach.length ? `\nOUTREACH YOU COPIED THIS WEEK\n` + outreach.map((x) => `- ${x.o.company} (${formatDate(x.at)})`).join('\n') + '\n' : ''}\n${failed ? '' : `Watch: ${i.lists.watch.length}. Policy updates: ${i.lists.policy.length}.\n`}Workspace: ${i.appUrl}\nReminder: open the dashboard this week to review the list, copy a draft, and log what happened with each company you contacted.\nThis email never contacts anyone.`;
 
   const subject = failed ? `CSR Radar: this week's run did not finish (${week})` : calls.length ? `CSR Radar: ${calls.length} to call this week (${week})` : `CSR Radar: nothing to call this week (${week})`;
   const subjectFinal = !failed && fu.length ? `${subject.replace(` (${week})`, '')}, ${fu.length} follow-up${fu.length === 1 ? '' : 's'} (${week})` : subject;
