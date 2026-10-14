@@ -1,4 +1,4 @@
-import { LOCK_TTL_MINUTES, MAX_EXTRACT_PER_RUN } from './config';
+import { LOCK_TTL_MINUTES, MAX_EXTRACT_PER_RUN, MAX_UPGRADE_PER_RUN } from './config';
 import { extractBatch, looksRelevant } from './extract';
 import type { JsonModel } from './gemini';
 import type { FetchLike } from './http';
@@ -92,41 +92,54 @@ export async function runPipeline(deps: PipelineDeps, trigger: RunRow['trigger']
     const batch = todo.slice(0, MAX_EXTRACT_PER_RUN);
     let queued = todo.length - batch.length;
     let extracted = 0;
+    // Articles first read from the headline alone get one more try on the full page, so the score reflects the whole article.
+    const upgrades = existing
+      .filter((a) => a.extraction && a.text_kind === 'snippet_only' && a.extraction_attempts < 2 && a.source !== 'seed' && looksRelevant(a))
+      .sort((a, b) => (b.published_at ?? b.first_seen_at).localeCompare(a.published_at ?? a.first_seen_at));
+    const upgradeBatch = model ? upgrades.slice(0, Math.min(MAX_EXTRACT_PER_RUN - batch.length, MAX_UPGRADE_PER_RUN)) : [];
+    const work = [...batch, ...upgradeBatch];
 
     if (!model) {
       notes.push('GEMINI_API_KEY is not set, so no extraction ran.');
       queued += batch.length;
       if (batch.length) status = status === 'failed' ? 'failed' : 'partial';
-    } else if (batch.length) {
+    } else if (work.length) {
       // 5. best-effort full text, a few at a time, inside a time budget
       const fetchText = deps.fetchText ?? ((u: string) => fetchArticleText(u, deps.fetchImpl));
-      const deadline = Date.now() + (deps.textBudgetMs ?? 60000);
+      const deadline = Date.now() + (deps.textBudgetMs ?? 120000);
       const bodies = new Map<string, string>();
-      for (let i = 0; i < batch.length && Date.now() < deadline; i += 5) {
-        await Promise.all(batch.slice(i, i + 5).map(async (a) => {
+      for (let i = 0; i < work.length && Date.now() < deadline; i += 5) {
+        await Promise.all(work.slice(i, i + 5).map(async (a) => {
           const body = await fetchText(a.url);
           if (body) bodies.set(a.id, body);
         }));
       }
-      const forModel = batch.map((a) => (bodies.has(a.id) ? { ...a, text: `${a.title}\n${bodies.get(a.id)}`, text_kind: 'body' as const } : a));
+      // An upgrade only goes back to the model when the full page was actually read; otherwise it keeps its first result.
+      const forModel = work
+        .filter((a) => !a.extraction || bodies.has(a.id))
+        .map((a) => (bodies.has(a.id) ? { ...a, text: `${a.title}\n${bodies.get(a.id)}`, text_kind: 'body' as const } : a));
+      for (const a of upgradeBatch) if (!bodies.has(a.id)) await repo.saveExtraction(a.id, a.extraction, a.extraction_attempts + 1);
       const res = await extractBatch(model, forModel);
+      let upgraded = 0;
       for (const a of forModel) {
         const ex = res.done.get(a.id);
         const text = a.text_kind === 'body' ? { text: a.text, kind: a.text_kind } : undefined;
         if (ex) {
           await repo.saveExtraction(a.id, ex, a.extraction_attempts + 1, text);
-          extracted++;
+          if (a.extraction) upgraded++; else extracted++;
         } else if (!res.quotaHit) {
-          await repo.saveExtraction(a.id, null, a.extraction_attempts + 1, text);
+          // a failed re-read never wipes an earlier result
+          await repo.saveExtraction(a.id, a.extraction ?? null, a.extraction_attempts + 1, text);
         }
       }
+      if (upgraded) notes.push(`${upgraded} earlier items were re-read on the full article and re-scored.`);
       queued += res.failed.length;
       if (res.quotaHit) {
         notes.push(`Gemini quota reached${res.quotaRetryAfter ? ` (retry after ${res.quotaRetryAfter}s)` : ''}. ${res.failed.length} articles stay queued for the next run.`);
         sources.push({ source: 'Gemini Flash', ok: false, items: extracted, error_class: 'quota', detail: 'Rate limit or daily quota reached' });
         if (status === 'succeeded') status = 'partial';
       } else {
-        sources.push({ source: 'Gemini Flash', ok: true, items: extracted, error_class: null, detail: `${bodies.size} of ${batch.length} pages gave body text; the rest used the headline` });
+        sources.push({ source: 'Gemini Flash', ok: true, items: extracted, error_class: null, detail: `${bodies.size} of ${work.length} pages gave full article text; the rest used the headline` });
         if (res.failed.length && status === 'succeeded') status = 'partial';
       }
     }

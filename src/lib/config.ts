@@ -53,6 +53,8 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const EXTRACT_BATCH = 4;
 export const MAX_EXTRACT_PER_RUN = 40;
+/** Of those, at most this many are earlier headline-only items re-read on the full article. */
+export const MAX_UPGRADE_PER_RUN = 20;
 export const MAX_DIGEST_CALLS = 10;
 /** Skip-verdict items at or above this score are shown as Emerging: real activity in the NGO's space, but not yet a reason to call. */
 export const EMERGING_MIN = 15;

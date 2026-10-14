@@ -1,9 +1,10 @@
 import { fetchRetry, type FetchLike } from '../http';
 import { stripTags } from '../util';
+import { resolveGoogleLink } from './googleLink';
 
 const UA = 'CSRPartnershipRadar/0.1 (weekly CSR digest for an Indian education NGO)';
 const MAX_BYTES = 600_000;
-const MAX_CHARS = 8000;
+const MAX_CHARS = 12000;
 
 /** Minimal robots.txt reader: honours Disallow lines under `User-agent: *`. */
 export function robotsAllows(robots: string, path: string): boolean {
@@ -33,16 +34,16 @@ export function extractBodyText(html: string): string {
 
 const robotsCache = new Map<string, string | null>();
 
-/** Best-effort article text. Returns null when blocked, not HTML, or when the link only leads back to Google. */
+/** Best-effort article text. Google News links are first resolved to the publisher's page. Returns null when blocked, not HTML, or unresolvable. */
 export async function fetchArticleText(url: string, f: FetchLike = fetch): Promise<string | null> {
   try {
-    const first = new URL(url);
-    if (first.hostname.endsWith('google.com')) {
-      const res = await fetchRetry(url, { headers: { 'user-agent': UA }, redirect: 'follow', timeoutMs: 6000, retries: 0 }, f);
-      const final = new URL(res.url || url);
-      if (final.hostname.endsWith('google.com')) return null;
-      return readHtml(res);
+    let target = url;
+    if (new URL(url).hostname.endsWith('google.com')) {
+      const real = await resolveGoogleLink(url, f);
+      if (!real || new URL(real).hostname.endsWith('google.com')) return null;
+      target = real;
     }
+    const first = new URL(target);
     const origin = first.origin;
     if (!robotsCache.has(origin)) {
       try {
@@ -54,7 +55,7 @@ export async function fetchArticleText(url: string, f: FetchLike = fetch): Promi
     }
     const robots = robotsCache.get(origin);
     if (robots && !robotsAllows(robots, first.pathname)) return null;
-    const res = await fetchRetry(url, { headers: { 'user-agent': UA }, redirect: 'follow', timeoutMs: 8000, retries: 0 }, f);
+    const res = await fetchRetry(target, { headers: { 'user-agent': UA }, redirect: 'follow', timeoutMs: 8000, retries: 0 }, f);
     return readHtml(res);
   } catch {
     return null;
